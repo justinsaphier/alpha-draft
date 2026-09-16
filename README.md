@@ -86,15 +86,15 @@ Full CRUD lives most clearly on `monthly_positions` (create/read/update/delete a
 - **Dev environment:** VS Code, with a shared `.vscode/` config (recommended extensions, launch config) so everyone's debugging setup matches  
 - **Version control:** GitHub, trunk-based with short-lived feature branches per Jira ticket; `.env` (API keys) gitignored
 
-## Suggested Jira Epic Breakdown
+## Suggested Task Breakdown
 
-**Epic: Auth & Roles**
+**Auth & Roles**
 
 - Set up user model with Admin/Player roles  
 - Registration/login flow  
 - Route-level permission checks (Admin-only endpoints)
 
-**Epic: League & Draft Engine**
+**League & Draft Engine**
 
 - League/season creation (Admin), configurable 6–10 player capacity  
 - Stock pool \+ sector/roster-spot setup (Admin)  
@@ -102,34 +102,34 @@ Full CRUD lives most clearly on `monthly_positions` (create/read/update/delete a
 - No-duplicate validation across the league  
 - Draft completion check (all 6 spots filled)
 
-**Epic: Monthly Positions**
+**Monthly Positions**
 
 - Submit long/short call per stock  
 - Select one levered (2x) pick per month  
 - Lock mechanism (no edits after month start)  
 - View own roster \+ position history
 
-**Epic: Pricing & Ingestion**
+**Pricing & Ingestion**
 
 - Integrate chosen market-data API client  
 - Monthly price refresh job → `price_snapshots`  
 - Flag stocks missing a price after refresh  
 - Admin manual override/backfill flow
 
-**Epic: Scoring & Leaderboard**
+**Scoring & Leaderboard**
 
 - Scoring calculation (per-stock return, long/short sign flip, leverage multiplier)  
 - Season leaderboard view/API  
 - Historical monthly breakdown per player
 
-**Epic: Frontend / UX**
+**Frontend / UX**
 
 - Draft board UI (round-by-round, spot-restricted)  
 - Monthly call \+ levered-pick submission UI  
 - Leaderboard \+ roster views  
 - Admin console (stock pool, price refresh/override)
 
-**Epic: QA & Deployment**
+**QA & Deployment**
 
 - Unit tests on scoring \+ validation logic, especially the leverage multiplier and short sign flip (highest priority — this is what a grader will poke at)  
 - Seed data / pre-loaded demo season so the leaderboard looks real on demo day  
