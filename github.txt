@@ -1,0 +1,49 @@
+
+Practical Guide — GitHub Repository
+To-Do Date: Aug 24 at 2:00pm
+Step 1: Create the Repository
+One team member creates a public repository on github.comLinks to an external site.
+Name it something meaningful: bookclub-app, event-planner, etc.
+Check Add a README file
+Add a .gitignore → choose Java from the dropdown
+Step 2: Invite Teammates
+Repository Settings → Collaborators and Teams → Add People
+Add each teammate's GitHub username
+Set role to Write
+Each teammate accepts the invitation from their GitHub notifications. Check email if notification is not found.
+Step 3: Set Up Branch Protection
+Repository Settings → Branches → Add branch protection rule
+Branch name pattern: main
+Check: Require a pull request before merging
+Check: Require at least 1 approving review
+Check: Require status checks to pass before merging (CI checks added in Module 2)
+Save changes
+Why branch protection? Nothing goes to main without a pull request and review. This mirrors real team development and prevents one person accidentally breaking the main branch for everyone.
+Step 4: Clone in VSCode
+On the repository page click Code → Copy the HTTPS URL
+Open VSCode → Source Control panel (Ctrl+Shift+G / Cmd+Shift+G)
+Click Clone Repository → paste the URL → choose a local folder
+Every teammate clones independently to their own machine
+Step 5: Working with Branches in VSCode
+Source Control panel → bottom left shows the current branch (initially main). You must create a new branch for every task you work on.
+To create a new branch: click the branch name → Create new branch → name it after your Jira task key: PROJ-3-create-book-model
+Make your changes → stage in Source Control → commit with message: PROJ-3: Create Book model
+Push → Source Control → Publish Branch (first push) or Sync Changes
+On GitHub → open a Pull Request from your branch to main → request a teammate review
+Step 6: Respond to Feedback and Merge
+Once your teammate submits their review, one of two things happens:
+
+If changes were requested:
+
+Make the fix locally, on the same branch you already have checked out — do not create a new branch
+Stage and commit as usual, with the same Jira key: PROJ-3: Fix null check per review
+Push — Source Control panel → Sync Changes
+The new commit appears automatically on the existing pull request. You do not open a new PR.
+Leave a comment on the PR (or reply to the reviewer's comment) letting them know it's ready for another look
+If it was approved:
+
+On the pull request page, click Merge pull request.
+Confirm the merge.
+Click Delete branch — GitHub shows this button right after the merge completes.
+Back in VSCode: Source Control panel → "..." menu → Pull, so your local main has the change you just merged.
+A PR can go through several rounds of "request changes → push → re-review" before it's approved. That's normal, not a sign anything went wrong. Keep pushing to the same branch each time.
