@@ -2,7 +2,6 @@
 Per course requirements: Personas, User Stories, Acceptance Criteria (Given/When/Then), Use Cases, and MVP definition.
 # Personas
 
-# User Stories
 
 # Use Cases:
 ## Use Case 1: Draft a Roster Actor: Marcus (Player) Precondition: Marcus is logged in, the league's draft has started, and it is his turn to pick. Steps:
