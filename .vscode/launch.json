@@ -1,0 +1,30 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "java",
+      "name": "Backend (Spring Boot)",
+      "request": "launch",
+      "mainClass": "com.alphadraft.skeleton.SkeletonApplication",
+      "projectName": "skeleton",
+      "cwd": "${workspaceFolder}/skeleton"
+    },
+    {
+      "type": "node",
+      "name": "Frontend (Vite)",
+      "request": "launch",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev"],
+      "cwd": "${workspaceFolder}/frontend",
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen"
+    }
+  ],
+  "compounds": [
+    {
+      "name": "Full Stack (Backend + Frontend)",
+      "configurations": ["Backend (Spring Boot)", "Frontend (Vite)"],
+      "stopAll": true
+    }
+  ]
+}
