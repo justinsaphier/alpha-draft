@@ -212,3 +212,19 @@ Alternative flow: If the pricing API is completely unreachable, Jordan manually 
 - Multi-season historical analytics
 
 **MVP Goal:** This MVP lets a 6–10 player league compete over a full fiscal quarter on stock-picking skill within a structured, rule-bound game: a sector-balanced, 10-stock draft (6 starters plus 4 bench), a weekly lineup and long/short decision (plus one 2x-levered bet) on every active holding, player-to-player trading and waiver-wire pickups to reshape a roster mid-season, live quotes to track positions in real time, and a leaderboard built from real, cached closing-price data. Live prices inform the player; only the weekly snapshot ever determines a score — so nothing about the live app's correctness depends on a real-time external call succeeding. The MVP shows who called the market best over a quarter; it does not provide live trading, real-money stakes, or any predictive or advisory output.
+
+#User Story 5. As Marcus, I want to view the season leaderboard, so that I can see how my cumulative score compares to the rest of the league.
+
+Acceptance Criteria:
+
+Given the current month's scores have been finalized, when Marcus views the leaderboard, then all players in the league (6–10) are displayed ranked by cumulative season score.
+Given Marcus selects his own name on the leaderboard, when the detail view loads, then his monthly score history is displayed.
+Given a new month's scores are calculated, when the leaderboard refreshes, then rankings update to reflect the new cumulative totals.
+
+#User Story 6. As Jordan, I want the system to pull each stock's closing price from a market-data API each month, so that scores can be calculated without manual data entry for every stock.
+
+Acceptance Criteria:
+
+Given Jordan triggers the monthly price refresh, when the system calls the pricing API for every stock in the pool, then each stock's closing price is stored in price_snapshots.
+Given the API fails to return a price for a stock, when the refresh completes, then that stock is flagged for Jordan's review.
+Given price_snapshots has been populated for the month, when any player's score is calculated, then the system reads only from price_snapshots, never a live API call.
