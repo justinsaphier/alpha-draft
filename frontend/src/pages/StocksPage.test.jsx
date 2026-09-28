@@ -1,4 +1,4 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitForElementToBeRemoved } from '@testing-library/react';
 import { vi } from 'vitest';
 import StocksPage from './StocksPage';
 import * as stockService from '../services/stockService.js';
@@ -60,3 +60,71 @@ test('shows an error when the create request fails', async () => {
   // Assert
   expect(await screen.findByText(/Could not add BAD/)).toBeInTheDocument();
 });
+
+
+test('edits a stock through PUT and shows the change without reloading', async () => {
+    // Arrange
+    stockService.updateStock.mockResolvedValue({ ...APPLE, name: 'Apple Incorporated' });
+    render(<StocksPage />);
+    await screen.findByText('AAPL');
+    fireEvent.click(screen.getByText('Edit'));
+    fireEvent.change(screen.getAllByLabelText('Company name')[1], {
+      target: { value: 'Apple Incorporated' },
+    });
+  
+    // Act
+    fireEvent.click(screen.getByText('Save'));
+  
+    // Assert
+    expect(await screen.findByText('Apple Incorporated')).toBeInTheDocument();
+    expect(stockService.updateStock).toHaveBeenCalledWith(1, {
+      ticker: 'AAPL',
+      name: 'Apple Incorporated',
+      sector: 'Technology',
+    });
+    expect(screen.queryByText('Save')).not.toBeInTheDocument();
+    expect(stockService.getStocks).toHaveBeenCalledTimes(1);
+  });
+  
+  test('cancelling an edit leaves the stock unchanged', async () => {
+    // Arrange
+    render(<StocksPage />);
+    await screen.findByText('AAPL');
+    fireEvent.click(screen.getByText('Edit'));
+  
+    // Act
+    fireEvent.click(screen.getByText('Cancel'));
+  
+    // Assert
+    expect(screen.getByText('Apple Inc.')).toBeInTheDocument();
+    expect(stockService.updateStock).not.toHaveBeenCalled();
+  });
+  
+  test('deletes a stock through DELETE and removes it without reloading', async () => {
+    // Arrange
+    stockService.deleteStock.mockResolvedValue(undefined);
+    render(<StocksPage />);
+    await screen.findByText('AAPL');
+  
+    // Act
+    fireEvent.click(screen.getByText('Delete'));
+  
+    // Assert
+    await waitForElementToBeRemoved(() => screen.queryByText('AAPL'));
+    expect(stockService.deleteStock).toHaveBeenCalledWith(1);
+    expect(stockService.getStocks).toHaveBeenCalledTimes(1);
+  });
+  
+  test('keeps the stock and shows an error when delete fails', async () => {
+    // Arrange
+    stockService.deleteStock.mockRejectedValue(new Error('Request failed: 404'));
+    render(<StocksPage />);
+    await screen.findByText('AAPL');
+  
+    // Act
+    fireEvent.click(screen.getByText('Delete'));
+  
+    // Assert
+    expect(await screen.findByText(/Could not delete stock/)).toBeInTheDocument();
+    expect(screen.getByText('AAPL')).toBeInTheDocument();
+  });

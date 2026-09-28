@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import StockForm from '../components/StockForm.jsx';
 import StockList from '../components/StockList.jsx';
-import { createStock, getStocks } from '../services/stockService.js';
+import { createStock, deleteStock, getStocks, updateStock } from '../services/stockService.js';
 
 function StocksPage() {
   const [stocks, setStocks] = useState([]);
@@ -29,6 +29,27 @@ function StocksPage() {
     }
   }
 
+  async function handleUpdate(id, changes) {
+    setActionError(null);
+    try {
+      const updated = await updateStock(id, changes);
+      setStocks((current) => current.map((s) => (s.id === id ? updated : s)));
+    } catch (err) {
+      setActionError(`Could not update ${changes.ticker}: ${err.message}`);
+      throw err;
+    }
+  }
+
+  async function handleDelete(id) {
+    setActionError(null);
+    try {
+      await deleteStock(id);
+      setStocks((current) => current.filter((s) => s.id !== id));
+    } catch (err) {
+      setActionError(`Could not delete stock: ${err.message}`);
+    }
+  }
+
   return (
     <main>
       <h1>Alpha Draft — Stock Pool</h1>
@@ -43,7 +64,7 @@ function StocksPage() {
       )}
       {isLoading && <p>Loading stocks…</p>}
       {error && <p role="alert">Could not load stocks: {error}</p>}
-      {!isLoading && !error && <StockList stocks={stocks} />}
+      {!isLoading && !error && <StockList stocks={stocks} onUpdate={handleUpdate} onDelete={handleDelete} />}
     </main>
   );
 }
