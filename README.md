@@ -76,6 +76,13 @@ The two-role split is a real authentication requirement, not just a feature: Adm
 
 Full CRUD lives most clearly on `monthly_positions` (create/read/update/delete a call before lock) and on Admin's management of `stocks` and `price_snapshots`.
 
+## Class Diagram
+![Alpha Draft class diagram](docs/class-diagram.png)
+The domain model above is exported from [`docs/class-diagram.drawio`]
+(docs/class-diagram.drawio). Open that file with the Draw.io Integration
+extension in VS Code to edit it, then re-export `docs/class-diagram.png`
+(File → Export as → PNG) and commit both files.
+
 ## Suggested Tech Stack
 
 - **Backend:** Flask \+ SQLAlchemy (ORM makes the sector/spot validation and scoring logic much cleaner than raw SQL)  
