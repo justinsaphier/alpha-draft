@@ -76,3 +76,16 @@
   margin-top: 12px;
   color: #c0392b;
 }
+
+.stock-card {
+  align-items: center;
+}
+
+.stock-card__actions {
+  display: flex;
+  gap: 6px;
+}
+
+.stock-card--editing {
+  display: block;
+}
