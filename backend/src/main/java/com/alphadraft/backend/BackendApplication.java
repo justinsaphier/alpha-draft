@@ -1,13 +1,13 @@
-package com.alphadraft.skeleton;
+package com.alphadraft.backend;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class SkeletonApplication {
+public class BackendApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(SkeletonApplication.class, args);
+		SpringApplication.run(BackendApplication.class, args);
 	}
 
 }
