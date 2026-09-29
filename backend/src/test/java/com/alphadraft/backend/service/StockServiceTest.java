@@ -31,4 +31,20 @@ class StockServiceTest {
                     assertThat(stock.getSector()).isEqualTo("Technology");
                 });
     }
+
+    @Test
+    void getStockByIdReturnsMatchingStock() {
+        assertThat(stockService.getStockById(3))
+                .hasValueSatisfying(stock -> assertThat(stock.getTicker()).isEqualTo("JNJ"));
+    }
+
+    @Test
+    void getStockByIdReturnsEmptyForUnknownId() {
+        assertThat(stockService.getStockById(999)).isEmpty();
+    }
+
+    @Test
+    void getAllStocksReturnsStocksInIdOrder() {
+        assertThat(stockService.getAllStocks()).extracting(Stock::getId).isSorted();
+    }
 }

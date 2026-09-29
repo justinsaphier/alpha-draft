@@ -32,3 +32,60 @@
 .stock-card__sector {
   color: var(--text);
 }
+
+.stock-form-section {
+  margin: 0 auto;
+  max-width: 480px;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0 16px;
+}
+
+.stock-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.stock-form input,
+.stock-form select {
+  flex: 1 1 120px;
+  min-width: 0;
+  padding: 6px 8px;
+  font: inherit;
+  font-size: 15px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--text-h);
+}
+
+.stock-form button,
+.stock-card__actions button {
+  padding: 6px 12px;
+  font: inherit;
+  font-size: 15px;
+  border: 1px solid var(--accent-border);
+  border-radius: 6px;
+  background: var(--accent-bg);
+  color: var(--text-h);
+  cursor: pointer;
+}
+
+.error {
+  margin-top: 12px;
+  color: #c0392b;
+}
+
+.stock-card {
+  align-items: center;
+}
+
+.stock-card__actions {
+  display: flex;
+  gap: 6px;
+}
+
+.stock-card--editing {
+  display: block;
+}

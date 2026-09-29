@@ -8,6 +8,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.alphadraft.backend.model.Stock;
 import com.alphadraft.backend.service.StockService;
 import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
@@ -46,5 +47,24 @@ class StockControllerTest {
         mockMvc.perform(get("/stocks"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(0));
+    }
+
+    @Test
+    void getStockByIdReturnsStock() throws Exception {
+        when(stockService.getStockById(1))
+                .thenReturn(Optional.of(new Stock(1, "AAPL", "Apple Inc.", "Technology")));
+
+        mockMvc.perform(get("/stocks/1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.ticker").value("AAPL"));
+    }
+
+    @Test
+    void getStockByIdReturns404WhenMissing() throws Exception {
+        when(stockService.getStockById(999)).thenReturn(Optional.empty());
+
+        mockMvc.perform(get("/stocks/999"))
+                .andExpect(status().isNotFound());
     }
 }
