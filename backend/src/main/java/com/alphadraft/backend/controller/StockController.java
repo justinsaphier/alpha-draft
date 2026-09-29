@@ -1,7 +1,7 @@
-package com.alphadraft.skeleton.controller;
+package com.alphadraft.backend.controller;
 
-import com.alphadraft.skeleton.model.Stock;
-import com.alphadraft.skeleton.service.StockService;
+import com.alphadraft.backend.model.Stock;
+import com.alphadraft.backend.service.StockService;
 import java.util.List;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
