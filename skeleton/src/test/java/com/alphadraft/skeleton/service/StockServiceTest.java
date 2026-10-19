@@ -1,6 +1,7 @@
 package com.alphadraft.skeleton.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -157,6 +158,34 @@ class StockServiceTest {
 
         assertTrue(service.updateStock(99, nvda).isEmpty());
         assertTrue(rule.checked.isEmpty());
+    }
+
+    @Test
+    void deleteStockRemovesStockAndReturnsTrue() {
+        FakeStockRepository repository = new FakeStockRepository(msft, ko);
+        StockService service = service(repository);
+
+        assertTrue(service.deleteStock(10));
+        assertEquals(List.of(ko), repository.findAll());
+    }
+
+    @Test
+    void deleteStockReturnsFalseForUnknownId() {
+        StockService service = service(new FakeStockRepository(msft));
+
+        assertFalse(service.deleteStock(99));
+    }
+
+    @Test
+    void createStockDoesNotReuseTheIdOfADeletedStock() {
+        StockService service = service(new FakeStockRepository(msft));
+        Stock first = service.createStock(nvda);
+
+        service.deleteStock(first.getId());
+        Stock second = service.createStock(new StockRequest("KO", "The Coca-Cola Company", "Consumer Staples"));
+
+        assertEquals(11, first.getId());
+        assertEquals(12, second.getId());
     }
 
     @Test
