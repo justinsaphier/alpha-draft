@@ -1,6 +1,7 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { vi } from 'vitest';
 import StockForm from './StockForm';
+import { ApiError } from '../services/stockService.js';
 
 function fillForm({ ticker, name, sector }) {
   fireEvent.change(screen.getByLabelText('Ticker'), { target: { value: ticker } });
@@ -109,4 +110,23 @@ test('clears a field error once the user edits that field', async () => {
   // Assert
   expect(screen.queryByText('Ticker is required.')).not.toBeInTheDocument();
   expect(screen.getByText('Company name is required.')).toBeInTheDocument();
+});
+
+test('shows backend validation errors under the matching fields', async () => {
+  // Arrange
+  const handleSubmit = vi
+    .fn()
+    .mockRejectedValue(
+      new ApiError(400, 'Please fix the highlighted fields.', { ticker: 'Ticker already exists.' }),
+    );
+  render(<StockForm onSubmit={handleSubmit} />);
+  fillForm({ ticker: 'AAPL', name: 'Apple Inc.', sector: 'Technology' });
+
+  // Act
+  fireEvent.click(screen.getByText('Add Stock'));
+
+  // Assert
+  expect(await screen.findByText('Ticker already exists.')).toBeInTheDocument();
+  expect(screen.getByLabelText('Ticker')).toHaveAttribute('aria-invalid', 'true');
+  expect(screen.getByLabelText('Ticker')).toHaveValue('AAPL');
 });

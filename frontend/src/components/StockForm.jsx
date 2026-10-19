@@ -3,6 +3,15 @@ import { SECTORS } from '../constants/sectors.js';
 import { MAX_TICKER_LENGTH, validateStock } from '../validation/stockValidation.js';
 
 const EMPTY_STOCK = { ticker: '', name: '', sector: SECTORS[0] };
+const FORM_FIELDS = ['ticker', 'name', 'sector'];
+
+// Keeps only the backend errors for fields this form actually shows.
+function backendFieldErrors(err) {
+  const fieldErrors = err?.fieldErrors ?? {};
+  return Object.fromEntries(
+    FORM_FIELDS.filter((field) => fieldErrors[field]).map((field) => [field, fieldErrors[field]]),
+  );
+}
 
 // Used both to create a new stock and to edit an existing one in the list.
 // Validates on submit and only calls onSubmit when every field is valid.
@@ -30,8 +39,10 @@ function StockForm({ initialStock = EMPTY_STOCK, submitLabel = 'Add Stock', onSu
 
     try {
       await onSubmit(stock);
-    } catch {
-      // The page shows the error; keep what the user typed so they can retry.
+    } catch (err) {
+      // The page shows the overall error; keep what the user typed so they can retry.
+      // If the backend rejected specific fields, show those messages under the inputs.
+      setErrors(backendFieldErrors(err));
       return;
     }
 
