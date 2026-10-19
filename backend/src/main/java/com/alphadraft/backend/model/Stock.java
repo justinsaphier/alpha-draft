@@ -1,4 +1,4 @@
-package com.alphadraft.skeleton.model;
+package com.alphadraft.backend.model;
 
 public class Stock {
 

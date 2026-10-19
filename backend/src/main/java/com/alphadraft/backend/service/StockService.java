@@ -1,6 +1,6 @@
-package com.alphadraft.skeleton.service;
+package com.alphadraft.backend.service;
 
-import com.alphadraft.skeleton.model.Stock;
+import com.alphadraft.backend.model.Stock;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
