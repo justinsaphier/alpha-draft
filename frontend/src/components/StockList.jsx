@@ -1,9 +1,18 @@
 import { useState } from 'react';
 import StockCard from './StockCard.jsx';
 import StockForm from './StockForm.jsx';
+import {
+  DEFAULT_FILTER,
+  DEFAULT_SORT,
+  FILTER_STRATEGIES,
+  SORT_STRATEGIES,
+  applyStrategies,
+} from '../strategies/stockListStrategies.js';
 
 function StockList({ stocks, onUpdate, onDelete }) {
   const [editingId, setEditingId] = useState(null);
+  const [sortKey, setSortKey] = useState(DEFAULT_SORT);
+  const [filterKey, setFilterKey] = useState(DEFAULT_FILTER);
 
   if (stocks.length === 0) {
     return <p>No stocks available.</p>;
@@ -14,28 +23,57 @@ function StockList({ stocks, onUpdate, onDelete }) {
     setEditingId(null);
   }
 
+  // StockList only picks which strategies to use; the strategies decide how.
+  const visibleStocks = applyStrategies(stocks, FILTER_STRATEGIES[filterKey], SORT_STRATEGIES[sortKey]);
+
   return (
-    <ul className="stock-list">
-      {stocks.map((stock) =>
-        stock.id === editingId ? (
-          <li key={stock.id} className="stock-card stock-card--editing">
-            <StockForm
-              initialStock={stock}
-              submitLabel="Save"
-              onSubmit={(changes) => handleSave(stock.id, changes)}
-              onCancel={() => setEditingId(null)}
-            />
-          </li>
-        ) : (
-          <StockCard
-            key={stock.id}
-            stock={stock}
-            onEdit={onUpdate && (() => setEditingId(stock.id))}
-            onDelete={onDelete && (() => onDelete(stock.id))}
-          />
-        ),
+    <section className="stock-list-section">
+      <div className="stock-list-controls">
+        <label htmlFor="stock-sort">Sort by</label>
+        <select id="stock-sort" value={sortKey} onChange={(e) => setSortKey(e.target.value)}>
+          {Object.entries(SORT_STRATEGIES).map(([key, strategy]) => (
+            <option key={key} value={key}>
+              {strategy.label}
+            </option>
+          ))}
+        </select>
+
+        <label htmlFor="stock-filter">Filter by sector</label>
+        <select id="stock-filter" value={filterKey} onChange={(e) => setFilterKey(e.target.value)}>
+          {Object.entries(FILTER_STRATEGIES).map(([key, strategy]) => (
+            <option key={key} value={key}>
+              {strategy.label}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {visibleStocks.length === 0 ? (
+        <p>No stocks match this filter.</p>
+      ) : (
+        <ul className="stock-list">
+          {visibleStocks.map((stock) =>
+            stock.id === editingId ? (
+              <li key={stock.id} className="stock-card stock-card--editing">
+                <StockForm
+                  initialStock={stock}
+                  submitLabel="Save"
+                  onSubmit={(changes) => handleSave(stock.id, changes)}
+                  onCancel={() => setEditingId(null)}
+                />
+              </li>
+            ) : (
+              <StockCard
+                key={stock.id}
+                stock={stock}
+                onEdit={onUpdate && (() => setEditingId(stock.id))}
+                onDelete={onDelete && (() => onDelete(stock.id))}
+              />
+            ),
+          )}
+        </ul>
       )}
-    </ul>
+    </section>
   );
 }
 
