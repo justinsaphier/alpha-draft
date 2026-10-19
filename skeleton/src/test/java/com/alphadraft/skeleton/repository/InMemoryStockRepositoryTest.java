@@ -11,6 +11,10 @@ import org.junit.jupiter.api.Test;
 
 class InMemoryStockRepositoryTest {
 
+    private final Stock aapl = new Stock(1, "AAPL", "Apple Inc.", "Technology");
+    private final Stock jpm = new Stock(2, "JPM", "JPMorgan Chase & Co.", "Financials");
+    private final Stock msft = new Stock(7, "MSFT", "Microsoft Corporation", "Technology");
+
     private InMemoryStockRepository repository;
 
     @BeforeEach
@@ -19,47 +23,56 @@ class InMemoryStockRepositoryTest {
     }
 
     @Test
-    void findAllReturnsSeededStocksInIdOrder() {
+    void startsEmpty() {
+        assertTrue(repository.findAll().isEmpty());
+    }
+
+    @Test
+    void findAllReturnsStocksInIdOrder() {
+        repository.save(msft);
+        repository.save(jpm);
+        repository.save(aapl);
+
         List<Integer> ids = repository.findAll().stream().map(Stock::getId).toList();
 
-        assertEquals(List.of(1, 2, 3, 4, 5, 6), ids);
+        assertEquals(List.of(1, 2, 7), ids);
     }
 
     @Test
     void findByIdReturnsMatchingStock() {
-        Stock stock = repository.findById(1).orElseThrow();
+        repository.save(aapl);
 
-        assertEquals("AAPL", stock.getTicker());
+        assertSame(aapl, repository.findById(1).orElseThrow());
     }
 
     @Test
     void findByIdReturnsEmptyForUnknownId() {
+        repository.save(aapl);
+
         assertTrue(repository.findById(99).isEmpty());
     }
 
     @Test
-    void saveAddsNewStock() {
-        Stock msft = new Stock(7, "MSFT", "Microsoft Corporation", "Technology");
-
+    void saveReturnsTheSavedStock() {
         assertSame(msft, repository.save(msft));
-        assertSame(msft, repository.findById(7).orElseThrow());
-        assertEquals(7, repository.findAll().size());
+        assertEquals(1, repository.findAll().size());
     }
 
     @Test
     void saveReplacesStockWithSameId() {
-        Stock renamed = new Stock(1, "AAPL", "Apple", "Technology");
-
-        repository.save(renamed);
+        repository.save(aapl);
+        repository.save(new Stock(1, "AAPL", "Apple", "Technology"));
 
         assertEquals("Apple", repository.findById(1).orElseThrow().getName());
-        assertEquals(6, repository.findAll().size());
+        assertEquals(1, repository.findAll().size());
     }
 
     @Test
     void findAllReturnsCopyThatDoesNotChangeStorage() {
+        repository.save(aapl);
+
         repository.findAll().clear();
 
-        assertEquals(6, repository.findAll().size());
+        assertEquals(1, repository.findAll().size());
     }
 }
