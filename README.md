@@ -83,6 +83,14 @@ The domain model above is exported from [`docs/class-diagram.drawio`]
 extension in VS Code to edit it, then re-export `docs/class-diagram.png`
 (File → Export as → PNG) and commit both files.
 
+## Design Pattern Register
+
+Design patterns we've applied to real problems in this codebase, with where to find them.
+
+| Pattern | Where | Problem it solves | Ticket |
+| :---- | :---- | :---- | :---- |
+| **Strategy** | `skeleton/src/main/java/com/alphadraft/skeleton/validation/` (`StockValidationRule` plus `RequiredFieldsRule`, `AllowedSectorRule`, `UniqueTickerRule`), used by `StockService.createStock` / `updateStock` | A stock must pass several checks before it is saved: every field is filled in, the sector is one of the 11 GICS sectors, and no other stock already uses the ticker. Without a pattern these checks become one long if/else block inside `StockService` that grows with every new rule. Each check is now its own class with the same `validate(stock, idBeingUpdated)` method. Spring injects every rule into `StockService`, which runs them all and returns a 400 with `{ "errors": { field: message } }` if any fail. Adding a rule means adding one class; `StockService` doesn't change. Each rule has its own unit tests in `skeleton/src/test/.../validation/`. | SCRUM-23 |
+
 ## Suggested Tech Stack
 
 - **Backend:** Flask \+ SQLAlchemy (ORM makes the sector/spot validation and scoring logic much cleaner than raw SQL)  
