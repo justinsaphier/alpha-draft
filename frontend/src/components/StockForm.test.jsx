@@ -67,3 +67,46 @@ test('keeps the inputs when the add fails', async () => {
   await waitFor(() => expect(handleSubmit).toHaveBeenCalled());
   expect(screen.getByLabelText('Ticker')).toHaveValue('KO');
 });
+
+test('shows errors and does not submit when required fields are empty', async () => {
+  // Arrange
+  const handleSubmit = vi.fn();
+  render(<StockForm onSubmit={handleSubmit} />);
+
+  // Act
+  fireEvent.click(screen.getByText('Add Stock'));
+
+  // Assert
+  expect(await screen.findByText('Ticker is required.')).toBeInTheDocument();
+  expect(screen.getByText('Company name is required.')).toBeInTheDocument();
+  expect(handleSubmit).not.toHaveBeenCalled();
+});
+
+test('shows an error and does not submit an invalid ticker', async () => {
+  // Arrange
+  const handleSubmit = vi.fn();
+  render(<StockForm onSubmit={handleSubmit} />);
+  fillForm({ ticker: 'AB$C', name: 'Bad Ticker Inc', sector: 'Technology' });
+
+  // Act
+  fireEvent.click(screen.getByText('Add Stock'));
+
+  // Assert
+  expect(await screen.findByText(/only letters, numbers/)).toBeInTheDocument();
+  expect(screen.getByLabelText('Ticker')).toHaveAttribute('aria-invalid', 'true');
+  expect(handleSubmit).not.toHaveBeenCalled();
+});
+
+test('clears a field error once the user edits that field', async () => {
+  // Arrange
+  render(<StockForm onSubmit={vi.fn()} />);
+  fireEvent.click(screen.getByText('Add Stock'));
+  await screen.findByText('Ticker is required.');
+
+  // Act
+  fireEvent.change(screen.getByLabelText('Ticker'), { target: { value: 'A' } });
+
+  // Assert
+  expect(screen.queryByText('Ticker is required.')).not.toBeInTheDocument();
+  expect(screen.getByText('Company name is required.')).toBeInTheDocument();
+});
