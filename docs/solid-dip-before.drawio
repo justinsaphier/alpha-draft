@@ -1,0 +1,42 @@
+<mxfile host="Electron" agent="SCRUM-21" version="24.0.0">
+  <diagram id="Before SCRUM-21: StockService owns its storage" name="Page-1">
+    <mxGraphModel dx="1000" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="800" pageHeight="720" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" value="Before SCRUM-21: StockService owns its storage" style="text;html=1;fontSize=17;fontStyle=1;align=center;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="0" y="10" width="800" height="30" as="geometry" /></mxCell>
+        <mxCell id="ctrl" value="StockController" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;whiteSpace=wrap;html=0;fillColor=#dae8fc;strokeColor=#6c8ebf;swimlaneFillColor=#ffffff;" vertex="1" parent="1"><mxGeometry x="60" y="70" width="380" height="108" as="geometry" /></mxCell>
+        <mxCell id="ctrl_f" value="- stockService: StockService" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=6;spacingTop=2;whiteSpace=wrap;html=0;fontFamily=Consolas;fontSize=13;" vertex="1" parent="ctrl"><mxGeometry y="30" width="380" height="32" as="geometry" /></mxCell>
+        <mxCell id="ctrl_l" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;strokeColor=inherit;" vertex="1" parent="ctrl"><mxGeometry y="62" width="380" height="1" as="geometry" /></mxCell>
+        <mxCell id="ctrl_m" value="+ getStocks(): List&lt;Stock&gt;
++ getStock(id: int): ResponseEntity&lt;Stock&gt;" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=6;spacingTop=4;whiteSpace=wrap;html=0;fontFamily=Consolas;fontSize=13;" vertex="1" parent="ctrl"><mxGeometry y="63" width="380" height="45" as="geometry" /></mxCell>
+        <mxCell id="svc" value="StockService" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;whiteSpace=wrap;html=0;fillColor=#f8cecc;strokeColor=#b85450;swimlaneFillColor=#ffffff;" vertex="1" parent="1"><mxGeometry x="60" y="230" width="380" height="168" as="geometry" /></mxCell>
+        <mxCell id="svc_f" value="- stocks: Map&lt;Integer, Stock&gt;
+  (ConcurrentSkipListMap, seeded
+   with 6 stocks in constructor)" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=6;spacingTop=2;whiteSpace=wrap;html=0;fontFamily=Consolas;fontSize=13;" vertex="1" parent="svc"><mxGeometry y="30" width="380" height="72" as="geometry" /></mxCell>
+        <mxCell id="svc_l" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;strokeColor=inherit;" vertex="1" parent="svc"><mxGeometry y="102" width="380" height="1" as="geometry" /></mxCell>
+        <mxCell id="svc_m" value="+ StockService()
++ getAllStocks(): List&lt;Stock&gt;
++ getStockById(id: int): Optional&lt;Stock&gt;" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=6;spacingTop=4;whiteSpace=wrap;html=0;fontFamily=Consolas;fontSize=13;" vertex="1" parent="svc"><mxGeometry y="103" width="380" height="65" as="geometry" /></mxCell>
+        <mxCell id="stock" value="Stock" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#666666;swimlaneFillColor=#ffffff;" vertex="1" parent="1"><mxGeometry x="60" y="490" width="380" height="208" as="geometry" /></mxCell>
+        <mxCell id="stock_f" value="- id: int
+- ticker: String
+- name: String
+- sector: String" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=6;spacingTop=2;whiteSpace=wrap;html=0;fontFamily=Consolas;fontSize=13;" vertex="1" parent="stock"><mxGeometry y="30" width="380" height="92" as="geometry" /></mxCell>
+        <mxCell id="stock_l" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;strokeColor=inherit;" vertex="1" parent="stock"><mxGeometry y="122" width="380" height="1" as="geometry" /></mxCell>
+        <mxCell id="stock_m" value="+ getId(): int
++ getTicker(): String
++ getName(): String
++ getSector(): String" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=6;spacingTop=4;whiteSpace=wrap;html=0;fontFamily=Consolas;fontSize=13;" vertex="1" parent="stock"><mxGeometry y="123" width="380" height="85" as="geometry" /></mxCell>
+        <mxCell id="e0" value="uses" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=open;endFill=0;endSize=12;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="ctrl" target="svc"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e1" value="stores" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=open;endFill=0;endSize=12;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="svc" target="stock"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="n0" value="DIP violation:
+StockService (high-level business
+logic) creates and owns a concrete
+in-memory map. Storage can&#x27;t be
+swapped for a database, and tests
+can&#x27;t give the service a fake." style="shape=note;whiteSpace=wrap;html=0;size=14;align=left;verticalAlign=top;spacingLeft=8;spacingTop=4;fontSize=12;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1"><mxGeometry x="480" y="230" width="300" height="120" as="geometry" /></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

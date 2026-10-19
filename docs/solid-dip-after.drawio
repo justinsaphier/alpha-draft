@@ -1,0 +1,65 @@
+<mxfile host="Electron" agent="SCRUM-21" version="24.0.0">
+  <diagram id="After SCRUM-21: StockService depends on the StockRepository interface" name="Page-1">
+    <mxGraphModel dx="1000" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1200" pageHeight="860" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" value="After SCRUM-21: StockService depends on the StockRepository interface" style="text;html=1;fontSize=17;fontStyle=1;align=center;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="0" y="10" width="1200" height="30" as="geometry" /></mxCell>
+        <mxCell id="ctrl" value="StockController" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;whiteSpace=wrap;html=0;fillColor=#dae8fc;strokeColor=#6c8ebf;swimlaneFillColor=#ffffff;" vertex="1" parent="1"><mxGeometry x="230" y="70" width="380" height="108" as="geometry" /></mxCell>
+        <mxCell id="ctrl_f" value="- stockService: StockService" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=6;spacingTop=2;whiteSpace=wrap;html=0;fontFamily=Consolas;fontSize=13;" vertex="1" parent="ctrl"><mxGeometry y="30" width="380" height="32" as="geometry" /></mxCell>
+        <mxCell id="ctrl_l" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;strokeColor=inherit;" vertex="1" parent="ctrl"><mxGeometry y="62" width="380" height="1" as="geometry" /></mxCell>
+        <mxCell id="ctrl_m" value="+ getStocks(): List&lt;Stock&gt;
++ getStock(id: int): ResponseEntity&lt;Stock&gt;" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=6;spacingTop=4;whiteSpace=wrap;html=0;fontFamily=Consolas;fontSize=13;" vertex="1" parent="ctrl"><mxGeometry y="63" width="380" height="45" as="geometry" /></mxCell>
+        <mxCell id="svc" value="StockService" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;whiteSpace=wrap;html=0;fillColor=#d5e8d4;strokeColor=#82b366;swimlaneFillColor=#ffffff;" vertex="1" parent="1"><mxGeometry x="230" y="230" width="380" height="128" as="geometry" /></mxCell>
+        <mxCell id="svc_f" value="- stockRepository: StockRepository" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=6;spacingTop=2;whiteSpace=wrap;html=0;fontFamily=Consolas;fontSize=13;" vertex="1" parent="svc"><mxGeometry y="30" width="380" height="32" as="geometry" /></mxCell>
+        <mxCell id="svc_l" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;strokeColor=inherit;" vertex="1" parent="svc"><mxGeometry y="62" width="380" height="1" as="geometry" /></mxCell>
+        <mxCell id="svc_m" value="+ StockService(repo: StockRepository)
++ getAllStocks(): List&lt;Stock&gt;
++ getStockById(id: int): Optional&lt;Stock&gt;" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=6;spacingTop=4;whiteSpace=wrap;html=0;fontFamily=Consolas;fontSize=13;" vertex="1" parent="svc"><mxGeometry y="63" width="380" height="65" as="geometry" /></mxCell>
+        <mxCell id="repo" value="&amp;lt;&amp;lt;interface&amp;gt;&amp;gt;
+StockRepository" style="swimlane;fontStyle=3;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=46;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;whiteSpace=wrap;html=0;fillColor=#fff2cc;strokeColor=#d6b656;swimlaneFillColor=#ffffff;" vertex="1" parent="1"><mxGeometry x="230" y="400" width="380" height="144" as="geometry" /></mxCell>
+        <mxCell id="repo_f" value="" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=6;spacingTop=2;whiteSpace=wrap;html=0;fontFamily=Consolas;fontSize=13;" vertex="1" parent="repo"><mxGeometry y="46" width="380" height="32" as="geometry" /></mxCell>
+        <mxCell id="repo_l" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;strokeColor=inherit;" vertex="1" parent="repo"><mxGeometry y="78" width="380" height="1" as="geometry" /></mxCell>
+        <mxCell id="repo_m" value="+ findAll(): List&lt;Stock&gt;
++ findById(id: int): Optional&lt;Stock&gt;
++ save(stock: Stock): Stock" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=6;spacingTop=4;whiteSpace=wrap;html=0;fontFamily=Consolas;fontSize=13;" vertex="1" parent="repo"><mxGeometry y="79" width="380" height="65" as="geometry" /></mxCell>
+        <mxCell id="mem" value="&amp;lt;&amp;lt;Repository&amp;gt;&amp;gt;
+InMemoryStockRepository" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=46;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;whiteSpace=wrap;html=0;fillColor=#d5e8d4;strokeColor=#82b366;swimlaneFillColor=#ffffff;" vertex="1" parent="1"><mxGeometry x="40" y="620" width="370" height="164" as="geometry" /></mxCell>
+        <mxCell id="mem_f" value="- stocks: Map&lt;Integer, Stock&gt;" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=6;spacingTop=2;whiteSpace=wrap;html=0;fontFamily=Consolas;fontSize=13;" vertex="1" parent="mem"><mxGeometry y="46" width="370" height="32" as="geometry" /></mxCell>
+        <mxCell id="mem_l" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;strokeColor=inherit;" vertex="1" parent="mem"><mxGeometry y="78" width="370" height="1" as="geometry" /></mxCell>
+        <mxCell id="mem_m" value="+ InMemoryStockRepository()
++ findAll(): List&lt;Stock&gt;
++ findById(id: int): Optional&lt;Stock&gt;
++ save(stock: Stock): Stock" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=6;spacingTop=4;whiteSpace=wrap;html=0;fontFamily=Consolas;fontSize=13;" vertex="1" parent="mem"><mxGeometry y="79" width="370" height="85" as="geometry" /></mxCell>
+        <mxCell id="fake" value="&amp;lt;&amp;lt;test double&amp;gt;&amp;gt;
+FakeStockRepository" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=46;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;whiteSpace=wrap;html=0;fillColor=#e1d5e7;strokeColor=#9673a6;swimlaneFillColor=#ffffff;" vertex="1" parent="1"><mxGeometry x="450" y="620" width="350" height="164" as="geometry" /></mxCell>
+        <mxCell id="fake_f" value="- stocks: List&lt;Stock&gt;" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=6;spacingTop=2;whiteSpace=wrap;html=0;fontFamily=Consolas;fontSize=13;" vertex="1" parent="fake"><mxGeometry y="46" width="350" height="32" as="geometry" /></mxCell>
+        <mxCell id="fake_l" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;strokeColor=inherit;" vertex="1" parent="fake"><mxGeometry y="78" width="350" height="1" as="geometry" /></mxCell>
+        <mxCell id="fake_m" value="+ FakeStockRepository(stocks...)
++ findAll(): List&lt;Stock&gt;
++ findById(id: int): Optional&lt;Stock&gt;
++ save(stock: Stock): Stock" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=6;spacingTop=4;whiteSpace=wrap;html=0;fontFamily=Consolas;fontSize=13;" vertex="1" parent="fake"><mxGeometry y="79" width="350" height="85" as="geometry" /></mxCell>
+        <mxCell id="stock" value="Stock" style="swimlane;fontStyle=1;align=center;verticalAlign=top;childLayout=stackLayout;horizontal=1;startSize=30;horizontalStack=0;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=0;marginBottom=0;whiteSpace=wrap;html=0;fillColor=#f5f5f5;strokeColor=#666666;swimlaneFillColor=#ffffff;" vertex="1" parent="1"><mxGeometry x="860" y="368" width="300" height="208" as="geometry" /></mxCell>
+        <mxCell id="stock_f" value="- id: int
+- ticker: String
+- name: String
+- sector: String" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=6;spacingTop=2;whiteSpace=wrap;html=0;fontFamily=Consolas;fontSize=13;" vertex="1" parent="stock"><mxGeometry y="30" width="300" height="92" as="geometry" /></mxCell>
+        <mxCell id="stock_l" value="" style="line;strokeWidth=1;fillColor=none;align=left;verticalAlign=middle;spacingTop=-1;spacingLeft=3;spacingRight=3;rotatable=0;labelPosition=right;points=[];portConstraint=eastwest;strokeColor=inherit;" vertex="1" parent="stock"><mxGeometry y="122" width="300" height="1" as="geometry" /></mxCell>
+        <mxCell id="stock_m" value="+ getId(): int
++ getTicker(): String
++ getName(): String
++ getSector(): String" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=6;spacingTop=4;whiteSpace=wrap;html=0;fontFamily=Consolas;fontSize=13;" vertex="1" parent="stock"><mxGeometry y="123" width="300" height="85" as="geometry" /></mxCell>
+        <mxCell id="e0" value="uses" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=open;endFill=0;endSize=12;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="ctrl" target="svc"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e1" value="depends on" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=open;endFill=0;endSize=12;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="svc" target="repo"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e2" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=0;endSize=14;dashed=1;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="mem" target="repo"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e3" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;endFill=0;endSize=14;dashed=1;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="fake" target="repo"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e4" value="returns" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=open;endFill=0;endSize=12;dashed=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;fontSize=11;labelBackgroundColor=#ffffff;" edge="1" parent="1" source="repo" target="stock"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="n0" value="DIP fix:
+StockService only knows the interface.
+Spring injects InMemoryStockRepository;
+StockServiceTest passes in
+FakeStockRepository instead." style="shape=note;whiteSpace=wrap;html=0;size=14;align=left;verticalAlign=top;spacingLeft=8;spacingTop=4;fontSize=12;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1"><mxGeometry x="860" y="70" width="300" height="105" as="geometry" /></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
