@@ -31,4 +31,9 @@ class FakeStockRepository implements StockRepository {
         stocks.add(stock);
         return stock;
     }
+
+    @Override
+    public boolean deleteById(int id) {
+        return stocks.removeIf(stock -> stock.getId() == id);
+    }
 }

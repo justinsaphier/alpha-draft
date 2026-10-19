@@ -8,6 +8,8 @@ import java.net.URI;
 import java.util.List;
 import java.util.Map;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -46,9 +48,26 @@ public class StockController {
         return ResponseEntity.of(stockService.updateStock(id, request));
     }
 
+    @DeleteMapping("/stocks/{id}")
+    public ResponseEntity<Void> deleteStock(@PathVariable int id) {
+        return stockService.deleteStock(id)
+                ? ResponseEntity.noContent().build()
+                : ResponseEntity.notFound().build();
+    }
+
     // 400 with { "errors": { field: message } }, the shape the frontend's stockService reads.
     @ExceptionHandler(StockValidationException.class)
     public ResponseEntity<Map<String, Map<String, String>>> handleValidation(StockValidationException e) {
-        return ResponseEntity.badRequest().body(Map.of("errors", e.getErrors()));
+        return errors(e.getErrors());
+    }
+
+    // A missing or malformed JSON body gets the same 400 shape instead of Spring's default.
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<Map<String, Map<String, String>>> handleUnreadableBody(HttpMessageNotReadableException e) {
+        return errors(Map.of("body", "Request body must be a JSON stock with ticker, name and sector."));
+    }
+
+    private static ResponseEntity<Map<String, Map<String, String>>> errors(Map<String, String> errors) {
+        return ResponseEntity.badRequest().body(Map.of("errors", errors));
     }
 }

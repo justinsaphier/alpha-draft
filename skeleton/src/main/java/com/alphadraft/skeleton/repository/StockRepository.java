@@ -13,4 +13,7 @@ public interface StockRepository {
     Optional<Stock> findById(int id);
 
     Stock save(Stock stock);
+
+    // Returns true if a stock with this id existed and was removed.
+    boolean deleteById(int id);
 }

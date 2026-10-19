@@ -30,4 +30,9 @@ public class InMemoryStockRepository implements StockRepository {
         stocks.put(stock.getId(), stock);
         return stock;
     }
+
+    @Override
+    public boolean deleteById(int id) {
+        return stocks.remove(id) != null;
+    }
 }

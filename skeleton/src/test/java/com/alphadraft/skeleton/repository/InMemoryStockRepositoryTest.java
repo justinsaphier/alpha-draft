@@ -1,6 +1,7 @@
 package com.alphadraft.skeleton.repository;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -64,6 +65,23 @@ class InMemoryStockRepositoryTest {
         repository.save(new Stock(1, "AAPL", "Apple", "Technology"));
 
         assertEquals("Apple", repository.findById(1).orElseThrow().getName());
+        assertEquals(1, repository.findAll().size());
+    }
+
+    @Test
+    void deleteByIdRemovesStockAndReturnsTrue() {
+        repository.save(aapl);
+        repository.save(jpm);
+
+        assertTrue(repository.deleteById(1));
+        assertEquals(List.of(jpm), repository.findAll());
+    }
+
+    @Test
+    void deleteByIdReturnsFalseForUnknownId() {
+        repository.save(aapl);
+
+        assertFalse(repository.deleteById(99));
         assertEquals(1, repository.findAll().size());
     }
 
