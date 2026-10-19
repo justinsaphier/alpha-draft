@@ -83,6 +83,14 @@ The domain model above is exported from [`docs/class-diagram.drawio`]
 extension in VS Code to edit it, then re-export `docs/class-diagram.png`
 (File → Export as → PNG) and commit both files.
 
+## Design Pattern Register
+
+Design patterns we've applied to real problems in this codebase, with where to find them.
+
+| Pattern | Where | Problem it solves | Ticket |
+| :---- | :---- | :---- | :---- |
+| **Strategy** | `frontend/src/strategies/stockListStrategies.js`, used by `frontend/src/components/StockList.jsx` | Users need to sort the stock pool several ways (date added, ticker A–Z / Z–A, company name, sector) and filter it by sector. Without a pattern this becomes a growing if/else chain inside `StockList`. Each sort is now an interchangeable object with the same `{ label, compare }` shape, and each filter has the same `{ label, matches }` shape, so `StockList` just applies whichever one the user picks. Adding a new sort or filter means adding one entry to the strategies file; `StockList` doesn't change. Tested in `stockListStrategies.test.js`. | SCRUM-26 |
+
 ## Suggested Tech Stack
 
 - **Backend:** Flask \+ SQLAlchemy (ORM makes the sector/spot validation and scoring logic much cleaner than raw SQL)  
