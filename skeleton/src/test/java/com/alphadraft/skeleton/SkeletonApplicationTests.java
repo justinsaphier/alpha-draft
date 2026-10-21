@@ -5,7 +5,8 @@ import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.alphadraft.skeleton.model.StockRequest;
-import com.alphadraft.skeleton.repository.InMemoryStockRepository;
+import com.alphadraft.skeleton.repository.AuditingStockRepository;
+import com.alphadraft.skeleton.repository.StockAuditEntry;
 import com.alphadraft.skeleton.repository.StockRepository;
 import com.alphadraft.skeleton.service.StockService;
 import com.alphadraft.skeleton.validation.AllowedSectorRule;
@@ -32,9 +33,19 @@ class SkeletonApplicationTests {
     private List<StockValidationRule> validationRules;
 
     @Test
-    void springInjectsInMemoryRepositoryIntoService() {
-        assertInstanceOf(InMemoryStockRepository.class, stockRepository);
+    void springInjectsAuditingRepositoryIntoService() {
+        assertInstanceOf(AuditingStockRepository.class, stockRepository);
         assertEquals(6, stockService.getAllStocks().size());
+    }
+
+    @Test
+    void seededStarterStocksAreRecordedAsCreates() {
+        List<StockAuditEntry> log = ((AuditingStockRepository) stockRepository).getAuditLog();
+
+        assertEquals(List.of("AAPL", "JPM", "JNJ", "XOM", "CAT", "NEE"),
+                log.stream().limit(6).map(StockAuditEntry::ticker).toList());
+        assertEquals(List.of("CREATE"),
+                log.stream().limit(6).map(StockAuditEntry::action).distinct().toList());
     }
 
     @Test
