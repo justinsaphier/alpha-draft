@@ -17,36 +17,45 @@ function useStocks() {
       .finally(() => setIsLoading(false));
   }, []);
 
-  async function addStock(stock) {
+  // Shared by add/edit/remove: clears the last error, runs the action, and on
+  // failure records "<failurePrefix>: <reason>". Rethrows when the caller
+  // (the form) needs the error to show field messages.
+  async function runAction(action, failurePrefix, { rethrow = true } = {}) {
     setActionError(null);
     try {
+      return await action();
+    } catch (err) {
+      setActionError(`${failurePrefix}: ${err.message}`);
+      if (rethrow) {
+        throw err;
+      }
+      return undefined;
+    }
+  }
+
+  function addStock(stock) {
+    return runAction(async () => {
       const created = await createStock(stock);
       setStocks((current) => [...current, created]);
-    } catch (err) {
-      setActionError(`Could not add ${stock.ticker}: ${err.message}`);
-      throw err;
-    }
+    }, `Could not add ${stock.ticker}`);
   }
 
-  async function editStock(id, changes) {
-    setActionError(null);
-    try {
+  function editStock(id, changes) {
+    return runAction(async () => {
       const updated = await updateStock(id, changes);
       setStocks((current) => current.map((s) => (s.id === id ? updated : s)));
-    } catch (err) {
-      setActionError(`Could not update ${changes.ticker}: ${err.message}`);
-      throw err;
-    }
+    }, `Could not update ${changes.ticker}`);
   }
 
-  async function removeStock(id) {
-    setActionError(null);
-    try {
-      await deleteStock(id);
-      setStocks((current) => current.filter((s) => s.id !== id));
-    } catch (err) {
-      setActionError(`Could not delete stock: ${err.message}`);
-    }
+  function removeStock(id) {
+    return runAction(
+      async () => {
+        await deleteStock(id);
+        setStocks((current) => current.filter((s) => s.id !== id));
+      },
+      'Could not delete stock',
+      { rethrow: false },
+    );
   }
 
   return { stocks, isLoading, error, actionError, addStock, editStock, removeStock };
