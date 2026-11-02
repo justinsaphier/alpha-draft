@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import StockCard from './StockCard.jsx';
 import StockForm from './StockForm.jsx';
+import StockListControls from './StockListControls.jsx';
 import {
   DEFAULT_FILTER,
   DEFAULT_SORT,
@@ -28,25 +29,12 @@ function StockList({ stocks, onUpdate, onDelete }) {
 
   return (
     <section className="stock-list-section">
-      <div className="stock-list-controls">
-        <label htmlFor="stock-sort">Sort by</label>
-        <select id="stock-sort" value={sortKey} onChange={(e) => setSortKey(e.target.value)}>
-          {Object.entries(SORT_STRATEGIES).map(([key, strategy]) => (
-            <option key={key} value={key}>
-              {strategy.label}
-            </option>
-          ))}
-        </select>
-
-        <label htmlFor="stock-filter">Filter by sector</label>
-        <select id="stock-filter" value={filterKey} onChange={(e) => setFilterKey(e.target.value)}>
-          {Object.entries(FILTER_STRATEGIES).map(([key, strategy]) => (
-            <option key={key} value={key}>
-              {strategy.label}
-            </option>
-          ))}
-        </select>
-      </div>
+      <StockListControls
+        sortKey={sortKey}
+        filterKey={filterKey}
+        onSortChange={setSortKey}
+        onFilterChange={setFilterKey}
+      />
 
       {visibleStocks.length === 0 ? (
         <p>No stocks match this filter.</p>
