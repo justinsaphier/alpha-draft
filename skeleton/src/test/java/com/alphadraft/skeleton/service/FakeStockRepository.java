@@ -10,9 +10,11 @@ import java.util.Optional;
 class FakeStockRepository implements StockRepository {
 
     private final List<Stock> stocks = new ArrayList<>();
+    private int highestId;
 
     FakeStockRepository(Stock... stocks) {
         this.stocks.addAll(List.of(stocks));
+        this.highestId = List.of(stocks).stream().mapToInt(Stock::getId).max().orElse(0);
     }
 
     @Override
@@ -29,11 +31,18 @@ class FakeStockRepository implements StockRepository {
     public Stock save(Stock stock) {
         stocks.removeIf(existing -> existing.getId() == stock.getId());
         stocks.add(stock);
+        highestId = Math.max(highestId, stock.getId());
         return stock;
     }
 
     @Override
     public boolean deleteById(int id) {
         return stocks.removeIf(stock -> stock.getId() == id);
+    }
+
+    @Override
+    public int nextId() {
+        highestId++;
+        return highestId;
     }
 }

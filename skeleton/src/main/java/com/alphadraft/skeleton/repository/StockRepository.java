@@ -16,4 +16,8 @@ public interface StockRepository {
 
     // Returns true if a stock with this id existed and was removed.
     boolean deleteById(int id);
+
+    // Returns the next id to give a new stock. An id is never handed out twice,
+    // even after the stock holding it is deleted.
+    int nextId();
 }
