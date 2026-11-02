@@ -35,4 +35,11 @@ public class InMemoryStockRepository implements StockRepository {
     public boolean deleteById(int id) {
         return stocks.remove(id) != null;
     }
+
+    @Override
+    public boolean existsByTicker(String ticker, Integer excludingId) {
+        return stocks.values().stream()
+                .filter(stock -> excludingId == null || stock.getId() != excludingId)
+                .anyMatch(stock -> stock.getTicker().equalsIgnoreCase(ticker));
+    }
 }
