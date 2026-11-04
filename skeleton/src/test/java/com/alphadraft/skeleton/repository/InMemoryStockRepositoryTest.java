@@ -86,6 +86,30 @@ class InMemoryStockRepositoryTest {
     }
 
     @Test
+    void nextIdStartsAtOneWhenEmpty() {
+        assertEquals(1, repository.nextId());
+    }
+
+    @Test
+    void nextIdComesAfterHighestSavedId() {
+        repository.save(aapl);
+        repository.save(msft);
+
+        assertEquals(8, repository.nextId());
+    }
+
+    @Test
+    void nextIdIsNeverReusedAfterDelete() {
+        repository.save(aapl);
+        repository.save(msft);
+
+        repository.deleteById(7);
+
+        assertEquals(8, repository.nextId());
+        assertEquals(9, repository.nextId());
+    }
+
+    @Test
     void findAllReturnsCopyThatDoesNotChangeStorage() {
         repository.save(aapl);
 

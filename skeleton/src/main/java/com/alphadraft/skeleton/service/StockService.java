@@ -21,8 +21,6 @@ public class StockService {
     // Strategy pattern: Spring injects every StockValidationRule bean, in @Order order.
     private final List<StockValidationRule> validationRules;
 
-    private int lastIssuedId;
-
     public StockService(StockRepository stockRepository, List<StockValidationRule> validationRules) {
         this.stockRepository = stockRepository;
         this.validationRules = validationRules;
@@ -39,7 +37,7 @@ public class StockService {
     public synchronized Stock createStock(StockRequest request) {
         StockRequest stock = request.normalized();
         validate(stock, null);
-        return stockRepository.save(new Stock(nextId(), stock.ticker(), stock.name(), stock.sector()));
+        return stockRepository.save(new Stock(stockRepository.nextId(), stock.ticker(), stock.name(), stock.sector()));
     }
 
     public synchronized Optional<Stock> updateStock(int id, StockRequest request) {
@@ -65,12 +63,5 @@ public class StockService {
         if (!errors.isEmpty()) {
             throw new StockValidationException(errors);
         }
-    }
-
-    // Never hands out an id twice, even after the newest stock is deleted.
-    private int nextId() {
-        int highestStored = stockRepository.findAll().stream().mapToInt(Stock::getId).max().orElse(0);
-        lastIssuedId = Math.max(lastIssuedId, highestStored) + 1;
-        return lastIssuedId;
     }
 }
