@@ -36,4 +36,11 @@ class FakeStockRepository implements StockRepository {
     public boolean deleteById(int id) {
         return stocks.removeIf(stock -> stock.getId() == id);
     }
+
+    @Override
+    public boolean existsByTicker(String ticker, Integer excludingId) {
+        return stocks.stream()
+                .filter(stock -> excludingId == null || stock.getId() != excludingId)
+                .anyMatch(stock -> stock.getTicker().equalsIgnoreCase(ticker));
+    }
 }

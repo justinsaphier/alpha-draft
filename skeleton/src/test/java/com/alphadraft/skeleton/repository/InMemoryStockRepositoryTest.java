@@ -86,6 +86,28 @@ class InMemoryStockRepositoryTest {
     }
 
     @Test
+    void existsByTickerFindsTakenTickerIgnoringCase() {
+        repository.save(aapl);
+
+        assertTrue(repository.existsByTicker("aapl", null));
+    }
+
+    @Test
+    void existsByTickerIsFalseForFreeTicker() {
+        repository.save(aapl);
+
+        assertFalse(repository.existsByTicker("MSFT", null));
+    }
+
+    @Test
+    void existsByTickerIgnoresTheExcludedStock() {
+        repository.save(aapl);
+
+        assertFalse(repository.existsByTicker("AAPL", 1));
+        assertTrue(repository.existsByTicker("AAPL", 2));
+    }
+
+    @Test
     void findAllReturnsCopyThatDoesNotChangeStorage() {
         repository.save(aapl);
 

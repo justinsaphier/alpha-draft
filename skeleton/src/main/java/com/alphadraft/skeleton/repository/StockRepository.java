@@ -16,4 +16,8 @@ public interface StockRepository {
 
     // Returns true if a stock with this id existed and was removed.
     boolean deleteById(int id);
+
+    // Returns true if another stock already uses this ticker (case-insensitive).
+    // excludingId is the stock being updated, or null when creating.
+    boolean existsByTicker(String ticker, Integer excludingId);
 }

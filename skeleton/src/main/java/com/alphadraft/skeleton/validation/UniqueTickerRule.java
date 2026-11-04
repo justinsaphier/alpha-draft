@@ -23,9 +23,7 @@ public class UniqueTickerRule implements StockValidationRule {
             return Map.of();
         }
         // A stock keeping its own ticker during an update is not a duplicate.
-        boolean taken = stockRepository.findAll().stream()
-                .filter(existing -> idBeingUpdated == null || existing.getId() != idBeingUpdated)
-                .anyMatch(existing -> existing.getTicker().equalsIgnoreCase(stock.ticker()));
+        boolean taken = stockRepository.existsByTicker(stock.ticker(), idBeingUpdated);
         return taken ? Map.of("ticker", "Ticker already exists.") : Map.of();
     }
 }
