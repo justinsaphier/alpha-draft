@@ -25,3 +25,5 @@ replay_pid*
 
 # Environment variables (per README: API keys must never be committed)
 .env
+# Stale build output from an old backend folder
+backend/

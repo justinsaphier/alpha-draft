@@ -6,9 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentSkipListMap;
-import org.springframework.stereotype.Repository;
 
-@Repository
 public class InMemoryStockRepository implements StockRepository {
 
     // Keyed by id so stocks can be changed later; sorted map keeps findAll in id order.
