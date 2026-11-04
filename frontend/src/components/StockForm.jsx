@@ -1,5 +1,6 @@
-import { useId, useState } from 'react';
+import { useId } from 'react';
 import { SECTORS } from '../constants/sectors.js';
+import useStockFormFields from '../hooks/useStockFormFields.js';
 import { MAX_TICKER_LENGTH, validateStock } from '../validation/stockValidation.js';
 
 const EMPTY_STOCK = { ticker: '', name: '', sector: SECTORS[0] };
@@ -16,20 +17,16 @@ function backendFieldErrors(err) {
 // Used both to create a new stock and to edit an existing one in the list.
 // Validates on submit and only calls onSubmit when every field is valid.
 function StockForm({ initialStock = EMPTY_STOCK, submitLabel = 'Add Stock', onSubmit, onCancel }) {
-  const [ticker, setTicker] = useState(initialStock.ticker);
-  const [name, setName] = useState(initialStock.name);
-  const [sector, setSector] = useState(initialStock.sector);
-  const [errors, setErrors] = useState({});
+  const { values, errors, setErrors, handleChange, reset } = useStockFormFields({
+    ticker: initialStock.ticker,
+    name: initialStock.name,
+    sector: initialStock.sector,
+  });
   const id = useId();
-
-  // Hide a field's error as soon as the user starts fixing it.
-  function clearError(field) {
-    setErrors((current) => ({ ...current, [field]: undefined }));
-  }
 
   async function handleSubmit(e) {
     e.preventDefault();
-    const stock = { ticker: ticker.trim().toUpperCase(), name: name.trim(), sector };
+    const stock = { ticker: values.ticker.trim().toUpperCase(), name: values.name.trim(), sector: values.sector };
 
     const validationErrors = validateStock(stock);
     setErrors(validationErrors);
@@ -48,9 +45,7 @@ function StockForm({ initialStock = EMPTY_STOCK, submitLabel = 'Add Stock', onSu
 
     // Clear the create form after a successful add; edit mode is closed by the parent.
     if (!onCancel) {
-      setTicker('');
-      setName('');
-      setSector(SECTORS[0]);
+      reset(EMPTY_STOCK);
     }
   }
 
@@ -74,11 +69,8 @@ function StockForm({ initialStock = EMPTY_STOCK, submitLabel = 'Add Stock', onSu
       <input
         aria-label="Ticker"
         placeholder="Ticker"
-        value={ticker}
-        onChange={(e) => {
-          setTicker(e.target.value);
-          clearError('ticker');
-        }}
+        value={values.ticker}
+        onChange={handleChange('ticker')}
         required
         maxLength={MAX_TICKER_LENGTH}
         {...errorProps('ticker')}
@@ -87,24 +79,13 @@ function StockForm({ initialStock = EMPTY_STOCK, submitLabel = 'Add Stock', onSu
       <input
         aria-label="Company name"
         placeholder="Company name"
-        value={name}
-        onChange={(e) => {
-          setName(e.target.value);
-          clearError('name');
-        }}
+        value={values.name}
+        onChange={handleChange('name')}
         required
         {...errorProps('name')}
       />
       {renderError('name')}
-      <select
-        aria-label="Sector"
-        value={sector}
-        onChange={(e) => {
-          setSector(e.target.value);
-          clearError('sector');
-        }}
-        {...errorProps('sector')}
-      >
+      <select aria-label="Sector" value={values.sector} onChange={handleChange('sector')} {...errorProps('sector')}>
         {SECTORS.map((s) => (
           <option key={s} value={s}>
             {s}
