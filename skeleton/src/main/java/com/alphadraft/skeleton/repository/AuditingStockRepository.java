@@ -35,6 +35,11 @@ public class AuditingStockRepository implements StockRepository {
     }
 
     @Override
+    public boolean existsByTicker(String ticker, Integer excludingId) {
+        return delegate.existsByTicker(ticker, excludingId);
+    }
+
+    @Override
     public Stock save(Stock stock) {
         String action = delegate.findById(stock.getId()).isPresent() ? "UPDATE" : "CREATE";
         Stock saved = delegate.save(stock);

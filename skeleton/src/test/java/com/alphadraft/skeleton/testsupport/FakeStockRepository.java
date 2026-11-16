@@ -1,4 +1,4 @@
-package com.alphadraft.skeleton.service;
+package com.alphadraft.skeleton.testsupport;
 
 import com.alphadraft.skeleton.model.Stock;
 import com.alphadraft.skeleton.repository.StockRepository;
@@ -6,13 +6,19 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-// Hand-written test double: lets StockService be tested without the real storage.
-class FakeStockRepository implements StockRepository {
+// Hand-written test double: an in-memory StockRepository for unit tests that don't need a
+// database. Like the real database, a stock saved with id 0 gets the next id from a
+// sequence that never reuses ids, even after deletes.
+public class FakeStockRepository implements StockRepository {
 
     private final List<Stock> stocks = new ArrayList<>();
+    private int lastId;
 
-    FakeStockRepository(Stock... stocks) {
-        this.stocks.addAll(List.of(stocks));
+    public FakeStockRepository(Stock... stocks) {
+        for (Stock stock : stocks) {
+            this.stocks.add(stock);
+            lastId = Math.max(lastId, stock.getId());
+        }
     }
 
     @Override
@@ -27,9 +33,17 @@ class FakeStockRepository implements StockRepository {
 
     @Override
     public Stock save(Stock stock) {
-        stocks.removeIf(existing -> existing.getId() == stock.getId());
-        stocks.add(stock);
-        return stock;
+        Stock toStore = stock;
+        if (stock.getId() == 0) {
+            lastId++;
+            toStore = new Stock(lastId, stock.getTicker(), stock.getName(), stock.getSector());
+        } else {
+            lastId = Math.max(lastId, stock.getId());
+        }
+        int id = toStore.getId();
+        stocks.removeIf(existing -> existing.getId() == id);
+        stocks.add(toStore);
+        return toStore;
     }
 
     @Override

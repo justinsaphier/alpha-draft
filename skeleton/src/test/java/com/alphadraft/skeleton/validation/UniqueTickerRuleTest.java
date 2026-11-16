@@ -5,7 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.alphadraft.skeleton.model.Stock;
 import com.alphadraft.skeleton.model.StockRequest;
-import com.alphadraft.skeleton.repository.InMemoryStockRepository;
+import com.alphadraft.skeleton.testsupport.FakeStockRepository;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -16,7 +16,7 @@ class UniqueTickerRuleTest {
 
     @BeforeEach
     void setUp() {
-        InMemoryStockRepository repository = new InMemoryStockRepository();
+        FakeStockRepository repository = new FakeStockRepository();
         repository.save(new Stock(1, "AAPL", "Apple Inc.", "Technology"));
         repository.save(new Stock(2, "JPM", "JPMorgan Chase & Co.", "Financials"));
         rule = new UniqueTickerRule(repository);
