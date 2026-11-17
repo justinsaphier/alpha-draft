@@ -12,8 +12,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.alphadraft.skeleton.auth.TokenService;
+import com.alphadraft.skeleton.config.SecurityConfig;
+import com.alphadraft.skeleton.model.Role;
 import com.alphadraft.skeleton.model.Stock;
 import com.alphadraft.skeleton.model.StockRequest;
+import com.alphadraft.skeleton.model.User;
 import com.alphadraft.skeleton.service.StockService;
 import com.alphadraft.skeleton.validation.StockValidationException;
 import java.util.List;
@@ -22,11 +26,19 @@ import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.context.annotation.Import;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-@WebMvcTest(StockController.class)
+// Every request carries a real ADMIN token, so these tests stay about controller behaviour.
+// StockSecurityTest covers who is let through.
+@WebMvcTest(value = StockController.class, properties = {
+    "app.jwt.secret=test-secret-that-is-at-least-thirty-two-bytes-long",
+    "app.jwt.expiration-minutes=60"
+})
+@Import({SecurityConfig.class, TokenService.class})
 class StockControllerTest {
 
     private static final String NVDA_JSON =
@@ -35,8 +47,15 @@ class StockControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
+    @Autowired
+    private TokenService tokenService;
+
     @MockitoBean
     private StockService stockService;
+
+    private String adminBearer() {
+        return "Bearer " + tokenService.issue(new User("admin@example.com", "hash", Role.ADMIN));
+    }
 
     @Test
     void getStocksReturns200WithList() throws Exception {
@@ -44,7 +63,7 @@ class StockControllerTest {
                 new Stock(1, "AAPL", "Apple Inc.", "Technology"),
                 new Stock(2, "JPM", "JPMorgan Chase & Co.", "Financials")));
 
-        mockMvc.perform(get("/stocks"))
+        mockMvc.perform(get("/stocks").header(HttpHeaders.AUTHORIZATION, adminBearer()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(2))
                 .andExpect(jsonPath("$[1].ticker").value("JPM"));
@@ -54,7 +73,7 @@ class StockControllerTest {
     void getStockReturns200WhenFound() throws Exception {
         when(stockService.getStockById(1)).thenReturn(Optional.of(new Stock(1, "AAPL", "Apple Inc.", "Technology")));
 
-        mockMvc.perform(get("/stocks/1"))
+        mockMvc.perform(get("/stocks/1").header(HttpHeaders.AUTHORIZATION, adminBearer()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.ticker").value("AAPL"));
     }
@@ -63,14 +82,14 @@ class StockControllerTest {
     void getStockReturns404WhenMissing() throws Exception {
         when(stockService.getStockById(99)).thenReturn(Optional.empty());
 
-        mockMvc.perform(get("/stocks/99")).andExpect(status().isNotFound());
+        mockMvc.perform(get("/stocks/99").header(HttpHeaders.AUTHORIZATION, adminBearer())).andExpect(status().isNotFound());
     }
 
     @Test
     void deleteReturns204WhenDeleted() throws Exception {
         when(stockService.deleteStock(1)).thenReturn(true);
 
-        mockMvc.perform(delete("/stocks/1"))
+        mockMvc.perform(delete("/stocks/1").header(HttpHeaders.AUTHORIZATION, adminBearer()))
                 .andExpect(status().isNoContent())
                 .andExpect(content().string(""));
     }
@@ -79,7 +98,7 @@ class StockControllerTest {
     void deleteReturns404WhenMissing() throws Exception {
         when(stockService.deleteStock(99)).thenReturn(false);
 
-        mockMvc.perform(delete("/stocks/99")).andExpect(status().isNotFound());
+        mockMvc.perform(delete("/stocks/99").header(HttpHeaders.AUTHORIZATION, adminBearer())).andExpect(status().isNotFound());
     }
 
     @Test
@@ -89,7 +108,7 @@ class StockControllerTest {
                 "name", "Company name is required.",
                 "sector", "Sector is required.")));
 
-        mockMvc.perform(post("/stocks").contentType(MediaType.APPLICATION_JSON).content("{}"))
+        mockMvc.perform(post("/stocks").contentType(MediaType.APPLICATION_JSON).content("{}").header(HttpHeaders.AUTHORIZATION, adminBearer()))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.errors.ticker").value("Ticker is required."))
                 .andExpect(jsonPath("$.errors.name").value("Company name is required."))
@@ -98,14 +117,14 @@ class StockControllerTest {
 
     @Test
     void postReturns400WithErrorsBodyForMalformedJson() throws Exception {
-        mockMvc.perform(post("/stocks").contentType(MediaType.APPLICATION_JSON).content("{not json"))
+        mockMvc.perform(post("/stocks").contentType(MediaType.APPLICATION_JSON).content("{not json").header(HttpHeaders.AUTHORIZATION, adminBearer()))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.errors.body").exists());
     }
 
     @Test
     void putReturns400WithErrorsBodyWhenBodyIsMissing() throws Exception {
-        mockMvc.perform(put("/stocks/1").contentType(MediaType.APPLICATION_JSON))
+        mockMvc.perform(put("/stocks/1").contentType(MediaType.APPLICATION_JSON).header(HttpHeaders.AUTHORIZATION, adminBearer()))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.errors.body").exists());
     }
@@ -115,7 +134,7 @@ class StockControllerTest {
         when(stockService.createStock(any(StockRequest.class)))
                 .thenReturn(new Stock(7, "NVDA", "NVIDIA Corporation", "Technology"));
 
-        mockMvc.perform(post("/stocks").contentType(MediaType.APPLICATION_JSON).content(NVDA_JSON))
+        mockMvc.perform(post("/stocks").contentType(MediaType.APPLICATION_JSON).content(NVDA_JSON).header(HttpHeaders.AUTHORIZATION, adminBearer()))
                 .andExpect(status().isCreated())
                 .andExpect(header().string("Location", "/stocks/7"))
                 .andExpect(jsonPath("$.id").value(7))
@@ -127,7 +146,7 @@ class StockControllerTest {
         when(stockService.createStock(any(StockRequest.class)))
                 .thenThrow(new StockValidationException(Map.of("ticker", "Ticker already exists.")));
 
-        mockMvc.perform(post("/stocks").contentType(MediaType.APPLICATION_JSON).content(NVDA_JSON))
+        mockMvc.perform(post("/stocks").contentType(MediaType.APPLICATION_JSON).content(NVDA_JSON).header(HttpHeaders.AUTHORIZATION, adminBearer()))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.errors.ticker").value("Ticker already exists."));
     }
@@ -137,7 +156,7 @@ class StockControllerTest {
         when(stockService.updateStock(eq(1), any(StockRequest.class)))
                 .thenReturn(Optional.of(new Stock(1, "NVDA", "NVIDIA Corporation", "Technology")));
 
-        mockMvc.perform(put("/stocks/1").contentType(MediaType.APPLICATION_JSON).content(NVDA_JSON))
+        mockMvc.perform(put("/stocks/1").contentType(MediaType.APPLICATION_JSON).content(NVDA_JSON).header(HttpHeaders.AUTHORIZATION, adminBearer()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(1))
                 .andExpect(jsonPath("$.ticker").value("NVDA"));
@@ -147,7 +166,7 @@ class StockControllerTest {
     void putReturns404ForUnknownId() throws Exception {
         when(stockService.updateStock(eq(99), any(StockRequest.class))).thenReturn(Optional.empty());
 
-        mockMvc.perform(put("/stocks/99").contentType(MediaType.APPLICATION_JSON).content(NVDA_JSON))
+        mockMvc.perform(put("/stocks/99").contentType(MediaType.APPLICATION_JSON).content(NVDA_JSON).header(HttpHeaders.AUTHORIZATION, adminBearer()))
                 .andExpect(status().isNotFound());
     }
 
@@ -156,7 +175,7 @@ class StockControllerTest {
         when(stockService.updateStock(eq(1), any(StockRequest.class)))
                 .thenThrow(new StockValidationException(Map.of("sector", "Choose a sector from the list.")));
 
-        mockMvc.perform(put("/stocks/1").contentType(MediaType.APPLICATION_JSON).content(NVDA_JSON))
+        mockMvc.perform(put("/stocks/1").contentType(MediaType.APPLICATION_JSON).content(NVDA_JSON).header(HttpHeaders.AUTHORIZATION, adminBearer()))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.errors.sector").value("Choose a sector from the list."));
     }
