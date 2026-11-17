@@ -41,32 +41,38 @@ async function request(path, options = {}) {
   return response;
 }
 
-function jsonOptions(method, body) {
+// Adds "Authorization: Bearer <token>" when there is a token. The backend needs it on every
+// /stocks call: any signed-in user may read, only an ADMIN may create, edit or delete.
+function authHeaders(token) {
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
+function jsonOptions(method, body, token) {
   return {
     method,
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...authHeaders(token) },
     body: JSON.stringify(body),
   };
 }
 
-export async function getStocks() {
-  const response = await request('/stocks');
+export async function getStocks(token) {
+  const response = await request('/stocks', { headers: authHeaders(token) });
   return response.json();
 }
 
-export async function createStock(stock) {
-  const response = await request('/stocks', jsonOptions('POST', stock));
+export async function createStock(stock, token) {
+  const response = await request('/stocks', jsonOptions('POST', stock, token));
   return response.json();
 }
 
-export async function updateStock(id, stock) {
-  const response = await request(`/stocks/${id}`, jsonOptions('PUT', stock));
+export async function updateStock(id, stock, token) {
+  const response = await request(`/stocks/${id}`, jsonOptions('PUT', stock, token));
   return response.json();
 }
 
-export async function deleteStock(id) {
+export async function deleteStock(id, token) {
   // DELETE returns 204 No Content, so there is no body to parse.
-  await request(`/stocks/${id}`, { method: 'DELETE' });
+  await request(`/stocks/${id}`, { method: 'DELETE', headers: authHeaders(token) });
 }
 
 // Sign-up and sign-in go through the backend only; React never talks to Supabase.

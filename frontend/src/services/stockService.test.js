@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { ApiError, createStock, signIn, signUp } from './stockService.js';
+import { ApiError, createStock, deleteStock, getStocks, signIn, signUp, updateStock } from './stockService.js';
 
 function mockFetchResponse({ ok, status, body, jsonFails = false }) {
   vi.stubGlobal(
@@ -93,5 +93,53 @@ describe('stockService sign-up and sign-in', () => {
     const error = await signUp({ email: 'p@example.com', password: 'correct horse' }).catch((err) => err);
 
     expect(error.fieldErrors).toEqual({ email: 'An account with this email already exists.' });
+  });
+});
+
+
+describe('stockService sends the sign-in token', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  const bearer = { Authorization: 'Bearer t' };
+
+  it('adds the bearer token to every stock request', async () => {
+    mockFetchResponse({ ok: true, status: 200, body: [] });
+
+    await getStocks('t');
+    await createStock(stock, 't');
+    await updateStock(7, stock, 't');
+    await deleteStock(7, 't');
+
+    expect(fetch).toHaveBeenNthCalledWith(1, 'http://localhost:8080/stocks', { headers: bearer });
+    expect(fetch).toHaveBeenNthCalledWith(
+      2,
+      'http://localhost:8080/stocks',
+      expect.objectContaining({ method: 'POST', headers: { 'Content-Type': 'application/json', ...bearer } }),
+    );
+    expect(fetch).toHaveBeenNthCalledWith(
+      3,
+      'http://localhost:8080/stocks/7',
+      expect.objectContaining({ method: 'PUT', headers: { 'Content-Type': 'application/json', ...bearer } }),
+    );
+    expect(fetch).toHaveBeenNthCalledWith(4, 'http://localhost:8080/stocks/7', { method: 'DELETE', headers: bearer });
+  });
+
+  it('sends no Authorization header without a token', async () => {
+    mockFetchResponse({ ok: true, status: 200, body: [] });
+
+    await getStocks();
+
+    expect(fetch).toHaveBeenCalledWith('http://localhost:8080/stocks', { headers: {} });
+  });
+
+  it('surfaces a 403 from the backend as an ApiError', async () => {
+    mockFetchResponse({ ok: false, status: 403, jsonFails: true });
+
+    const error = await deleteStock(7, 't').catch((err) => err);
+
+    expect(error).toBeInstanceOf(ApiError);
+    expect(error.status).toBe(403);
   });
 });

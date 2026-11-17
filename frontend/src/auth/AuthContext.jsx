@@ -59,6 +59,8 @@ export function AuthProvider({ children }) {
       isSignedIn: session !== null,
       user: session ? { email: session.email, role: session.role } : null,
       token: session ? session.token : null,
+      // Only for showing or hiding admin controls. The backend checks the role on every request.
+      isAdmin: session !== null && session.role === 'ADMIN',
       signIn,
       signUp,
       signOut,
