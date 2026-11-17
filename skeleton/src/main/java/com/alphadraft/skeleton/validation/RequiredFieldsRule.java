@@ -1,6 +1,8 @@
 package com.alphadraft.skeleton.validation;
 
 import com.alphadraft.skeleton.model.StockRequest;
+import static com.alphadraft.skeleton.validation.FieldChecks.isBlank;
+
 import java.util.LinkedHashMap;
 import java.util.Map;
 import org.springframework.core.annotation.Order;
@@ -24,9 +26,5 @@ public class RequiredFieldsRule implements StockValidationRule {
             errors.put("sector", "Sector is required.");
         }
         return errors;
-    }
-
-    private static boolean isBlank(String value) {
-        return value == null || value.isBlank();
     }
 }

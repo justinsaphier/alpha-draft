@@ -19,7 +19,7 @@ public class UniqueTickerRule implements StockValidationRule {
     @Override
     public Map<String, String> validate(StockRequest stock, Integer idBeingUpdated) {
         // A missing ticker is reported by RequiredFieldsRule, not here.
-        if (stock.ticker() == null || stock.ticker().isBlank()) {
+        if (FieldChecks.isBlank(stock.ticker())) {
             return Map.of();
         }
         // A stock keeping its own ticker during an update is not a duplicate.
