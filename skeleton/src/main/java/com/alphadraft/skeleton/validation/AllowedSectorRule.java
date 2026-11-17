@@ -27,7 +27,7 @@ public class AllowedSectorRule implements StockValidationRule {
     @Override
     public Map<String, String> validate(StockRequest stock, Integer idBeingUpdated) {
         // A missing sector is reported by RequiredFieldsRule, not here.
-        if (stock.sector() == null || stock.sector().isBlank() || SECTORS.contains(stock.sector())) {
+        if (FieldChecks.isBlank(stock.sector()) || SECTORS.contains(stock.sector())) {
             return Map.of();
         }
         return Map.of("sector", "Choose a sector from the list.");

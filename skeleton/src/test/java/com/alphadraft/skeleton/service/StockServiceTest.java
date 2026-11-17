@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.alphadraft.skeleton.model.Stock;
 import com.alphadraft.skeleton.model.StockRequest;
+import com.alphadraft.skeleton.testsupport.FakeStockRepository;
 import com.alphadraft.skeleton.validation.StockValidationException;
 import com.alphadraft.skeleton.validation.StockValidationRule;
 import java.util.ArrayList;

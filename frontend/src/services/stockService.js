@@ -68,3 +68,15 @@ export async function deleteStock(id) {
   // DELETE returns 204 No Content, so there is no body to parse.
   await request(`/stocks/${id}`, { method: 'DELETE' });
 }
+
+// Sign-up and sign-in go through the backend only; React never talks to Supabase.
+// Each resolves to { token, email, role } on success.
+export async function signUp(credentials) {
+  const response = await request('/auth/signup', jsonOptions('POST', credentials));
+  return response.json();
+}
+
+export async function signIn(credentials) {
+  const response = await request('/auth/signin', jsonOptions('POST', credentials));
+  return response.json();
+}

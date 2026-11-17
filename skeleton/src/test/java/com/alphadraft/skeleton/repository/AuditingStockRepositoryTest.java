@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.alphadraft.skeleton.model.Stock;
+import com.alphadraft.skeleton.testsupport.FakeStockRepository;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
@@ -21,12 +22,12 @@ class AuditingStockRepositoryTest {
     private final Stock aapl = new Stock(1, "AAPL", "Apple Inc.", "Technology");
     private final Stock jpm = new Stock(2, "JPM", "JPMorgan Chase & Co.", "Financials");
 
-    private InMemoryStockRepository delegate;
+    private FakeStockRepository delegate;
     private AuditingStockRepository repository;
 
     @BeforeEach
     void setUp() {
-        delegate = new InMemoryStockRepository();
+        delegate = new FakeStockRepository();
         repository = new AuditingStockRepository(delegate, Clock.fixed(NOW, ZoneOffset.UTC));
     }
 
