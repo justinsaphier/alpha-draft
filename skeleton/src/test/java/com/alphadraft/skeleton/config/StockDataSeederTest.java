@@ -3,7 +3,7 @@ package com.alphadraft.skeleton.config;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.alphadraft.skeleton.model.Stock;
-import com.alphadraft.skeleton.repository.InMemoryStockRepository;
+import com.alphadraft.skeleton.testsupport.FakeStockRepository;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -11,7 +11,7 @@ import org.junit.jupiter.api.Test;
 class StockDataSeederTest {
 
     // Records every save so the test can count calls, not just the final contents.
-    private static class RecordingStockRepository extends InMemoryStockRepository {
+    private static class RecordingStockRepository extends FakeStockRepository {
 
         private final List<Stock> saved = new ArrayList<>();
 
