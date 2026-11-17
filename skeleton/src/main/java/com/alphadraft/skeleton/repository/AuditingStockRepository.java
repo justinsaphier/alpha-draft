@@ -4,23 +4,25 @@ import com.alphadraft.skeleton.model.Stock;
 import java.time.Clock;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 // Decorator pattern: implements StockRepository AND wraps one. Every save and delete
 // is passed to the wrapped repository unchanged, then recorded in the audit log, so
-// neither StockService nor the real storage has to know auditing exists.
+// neither StockService nor the real storage has to know auditing exists. The log itself is
+// a StockAuditLog; in the running app that is the stock_audit_log table, so history
+// survives restarts.
 public class AuditingStockRepository implements StockRepository {
 
     private final StockRepository delegate;
     private final Clock clock;
-    private final List<StockAuditEntry> auditLog = new CopyOnWriteArrayList<>();
+    private final StockAuditLog auditLog;
 
-    public AuditingStockRepository(StockRepository delegate) {
-        this(delegate, Clock.systemUTC());
+    public AuditingStockRepository(StockRepository delegate, StockAuditLog auditLog) {
+        this(delegate, auditLog, Clock.systemUTC());
     }
 
-    AuditingStockRepository(StockRepository delegate, Clock clock) {
+    AuditingStockRepository(StockRepository delegate, StockAuditLog auditLog, Clock clock) {
         this.delegate = delegate;
+        this.auditLog = auditLog;
         this.clock = clock;
     }
 
@@ -59,7 +61,7 @@ public class AuditingStockRepository implements StockRepository {
 
     // Oldest change first; a copy, so callers can't edit the log.
     public List<StockAuditEntry> getAuditLog() {
-        return List.copyOf(auditLog);
+        return List.copyOf(auditLog.findAll());
     }
 
     private void record(String action, int stockId, String ticker) {

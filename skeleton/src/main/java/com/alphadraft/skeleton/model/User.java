@@ -53,4 +53,9 @@ public class User {
     public Role getRole() {
         return role;
     }
+
+    // Used only by AdminAccountSeeder to turn the configured account into the admin.
+    public void promoteToAdmin() {
+        this.role = Role.ADMIN;
+    }
 }

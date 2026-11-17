@@ -7,12 +7,12 @@ import useStocks from '../hooks/useStocks.js';
 // each signed-in user a fresh list, so signing out and in as someone else never shows the
 // previous user's data.
 function StocksPage() {
-  const { isSignedIn, isAdmin, token } = useAuth();
+  const { isSignedIn, isAdmin, token, signOut } = useAuth();
 
   return (
     <main>
       <h1>Alpha Draft — Stock Pool</h1>
-      {isSignedIn ? <StockPool key={token} token={token} isAdmin={isAdmin} /> : <p>Sign in to see the stock pool.</p>}
+      {isSignedIn ? <StockPool key={token} token={token} isAdmin={isAdmin} onUnauthorized={signOut} /> : <p>Sign in to see the stock pool.</p>}
     </main>
   );
 }
@@ -20,8 +20,11 @@ function StocksPage() {
 // Layout only: all stock data and operations live in the useStocks hook.
 // Only admins get the add form and the Edit/Delete buttons. Hiding them is a convenience:
 // the backend still rejects a player's create, edit or delete with 403.
-function StockPool({ token, isAdmin }) {
-  const { stocks, isLoading, error, actionError, addStock, editStock, removeStock } = useStocks(token);
+function StockPool({ token, isAdmin, onUnauthorized }) {
+  const { stocks, isLoading, error, actionError, addStock, editStock, removeStock } = useStocks(
+    token,
+    onUnauthorized,
+  );
 
   return (
     <>

@@ -61,6 +61,29 @@ Price data is fetched via a market-data API (Twelve Data or Finnhub are the lead
 
 The two-role split is a real authentication requirement, not just a feature: Admin's job didn't disappear when pricing became API-driven — it shifted from manual data entry to managing the pool, triggering ingestion, and handling exceptions.
 
+## Running Locally
+
+**Backend** (Spring Boot + JPA on Supabase PostgreSQL):
+
+1. `cd skeleton`, copy `.env.example` to `.env`, and fill in the Supabase **Session pooler** connection (Supabase → Connect), a `JWT_SECRET`, and an `ADMIN_EMAIL` / `ADMIN_PASSWORD`.
+2. `./mvnw spring-boot:run` (Windows PowerShell: `.\mvnw.cmd spring-boot:run`). The app reads `.env` itself, creates or updates the `users`, `stocks` and `stock_audit_log` tables, seeds six starter stocks into an empty table, and creates the admin account. It runs on http://localhost:8080.
+
+**Frontend:** `cd frontend`, then `npm install` and `npm run dev`, and open http://localhost:5173.
+
+**What's implemented now:**
+
+| Concern | Where |
+| :---- | :---- |
+| Supabase connection and JPA settings | `skeleton/src/main/resources/application.properties` |
+| Entities and relationship | `model/User.java`, `model/Stock.java` (`@ManyToOne` `draftedBy` → `User`), `repository/StockAuditEntry.java` |
+| Repositories | `repository/UserRepository.java`, `StockJpaRepository.java`, `StockAuditJpaRepository.java` |
+| Sign-up and sign-in (backend only, BCrypt, JWT) | `auth/AuthController.java`, `AuthService.java`, `TokenService.java` |
+| Backend role enforcement | `config/SecurityConfig.java`, `auth/JwtAuthenticationFilter.java` |
+| Admin account | `config/AdminAccountSeeder.java` (from `ADMIN_EMAIL` / `ADMIN_PASSWORD`) |
+| Frontend role enforcement | `frontend/src/pages/StocksPage.jsx` (admin-only controls), `auth/AuthContext.jsx` |
+
+Anyone who signs up is a **PLAYER**, who can view the stock pool. Only the **ADMIN** can add, edit or delete stocks. Those requests return 403 for a player and 401 when signed out.
+
 ## Data Model (proposed)
 
 | Table | Purpose | Key fields |

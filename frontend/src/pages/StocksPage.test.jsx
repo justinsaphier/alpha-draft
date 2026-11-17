@@ -176,3 +176,14 @@ test('reloads the stock pool with the new token when a different user signs in',
   expect(stockService.getStocks).toHaveBeenLastCalledWith('player-token');
   expect(screen.queryByLabelText('Edit AAPL')).not.toBeInTheDocument();
 });
+
+test('an expired session is signed out instead of showing a failed load', async () => {
+  stockService.getStocks.mockRejectedValue(
+    Object.assign(new Error('Request failed: 401'), { status: 401 }),
+  );
+
+  renderPage(PLAYER_SESSION);
+
+  expect(await screen.findByText('Sign in to see the stock pool.')).toBeInTheDocument();
+  expect(window.localStorage.getItem('alphaDraft.session')).toBeNull();
+});

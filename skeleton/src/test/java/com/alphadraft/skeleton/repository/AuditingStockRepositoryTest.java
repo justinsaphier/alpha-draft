@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.alphadraft.skeleton.model.Stock;
 import com.alphadraft.skeleton.testsupport.FakeStockRepository;
+import com.alphadraft.skeleton.testsupport.InMemoryStockAuditLog;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
@@ -23,12 +24,33 @@ class AuditingStockRepositoryTest {
     private final Stock jpm = new Stock(2, "JPM", "JPMorgan Chase & Co.", "Financials");
 
     private FakeStockRepository delegate;
+    private InMemoryStockAuditLog auditLog;
     private AuditingStockRepository repository;
 
     @BeforeEach
     void setUp() {
         delegate = new FakeStockRepository();
-        repository = new AuditingStockRepository(delegate, Clock.fixed(NOW, ZoneOffset.UTC));
+        auditLog = new InMemoryStockAuditLog();
+        repository = new AuditingStockRepository(delegate, auditLog, Clock.fixed(NOW, ZoneOffset.UTC));
+    }
+
+    @Test
+    void entriesAreWrittenToTheAuditLogItWasGiven() {
+        repository.save(aapl);
+
+        assertEquals(List.of(new StockAuditEntry("CREATE", 1, "AAPL", NOW)), auditLog.findAll());
+    }
+
+    @Test
+    void publicConstructorUsesTheSystemClock() {
+        AuditingStockRepository real = new AuditingStockRepository(new FakeStockRepository(), auditLog);
+        Instant before = Instant.now();
+
+        real.save(aapl);
+
+        Instant recorded = auditLog.findAll().get(0).timestamp();
+        assertFalse(recorded.isBefore(before));
+        assertFalse(recorded.isAfter(Instant.now()));
     }
 
     @Test
