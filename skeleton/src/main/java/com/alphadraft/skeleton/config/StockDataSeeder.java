@@ -7,7 +7,9 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
 // Loads the starter stocks when the app starts, so neither StockService nor the
-// repository has to know what the starting data is.
+// repository has to know what the starting data is. The table now lives in Supabase and
+// survives restarts, so the seeder only fills an empty table: restarting never adds
+// duplicates, and stocks an admin added or deleted are left alone.
 @Component
 public class StockDataSeeder implements CommandLineRunner {
 
@@ -28,6 +30,12 @@ public class StockDataSeeder implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-        STARTER_STOCKS.forEach(stockRepository::save);
+        if (!stockRepository.findAll().isEmpty()) {
+            return;
+        }
+        // Save a fresh copy of each starter stock. JPA writes the generated id back into the
+        // object it saves, so saving the shared constants would change them for later runs.
+        STARTER_STOCKS.forEach(stock -> stockRepository.save(
+                new Stock(0, stock.getTicker(), stock.getName(), stock.getSector())));
     }
 }
