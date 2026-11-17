@@ -13,8 +13,10 @@ vi.mock('../services/stockService.js', () => ({
 const apple = { id: 1, ticker: 'AAPL', name: 'Apple Inc.', sector: 'Technology' };
 const msft = { id: 2, ticker: 'MSFT', name: 'Microsoft Corporation', sector: 'Technology' };
 
+const TOKEN = 'signed-in-token';
+
 async function renderLoadedHook() {
-  const hook = renderHook(() => useStocks());
+  const hook = renderHook(() => useStocks(TOKEN));
   await waitFor(() => expect(hook.result.current.isLoading).toBe(false));
   return hook;
 }
@@ -107,5 +109,65 @@ describe('useStocks', () => {
     await act(() => result.current.addStock({ ticker: 'MSFT' }));
 
     expect(result.current.actionError).toBeNull();
+  });
+});
+
+describe('useStocks with the sign-in token', () => {
+  beforeEach(() => {
+    vi.resetAllMocks();
+    stockService.getStocks.mockResolvedValue([apple]);
+  });
+
+  it('sends the token when loading stocks', async () => {
+    await renderLoadedHook();
+    expect(stockService.getStocks).toHaveBeenCalledWith(TOKEN);
+  });
+
+  it('sends the token with create, update and delete', async () => {
+    stockService.createStock.mockResolvedValue(msft);
+    stockService.updateStock.mockResolvedValue(apple);
+    stockService.deleteStock.mockResolvedValue(undefined);
+    const { result } = await renderLoadedHook();
+
+    await act(() => result.current.addStock({ ticker: 'MSFT' }));
+    await act(() => result.current.editStock(1, { ticker: 'AAPL' }));
+    await act(() => result.current.removeStock(1));
+
+    expect(stockService.createStock).toHaveBeenCalledWith({ ticker: 'MSFT' }, TOKEN);
+    expect(stockService.updateStock).toHaveBeenCalledWith(1, { ticker: 'AAPL' }, TOKEN);
+    expect(stockService.deleteStock).toHaveBeenCalledWith(1, TOKEN);
+  });
+
+  it('calls onUnauthorized when loading is rejected with 401', async () => {
+    const onUnauthorized = vi.fn();
+    stockService.getStocks.mockRejectedValue(Object.assign(new Error('Request failed: 401'), { status: 401 }));
+
+    const hook = renderHook(() => useStocks(TOKEN, onUnauthorized));
+    await waitFor(() => expect(hook.result.current.isLoading).toBe(false));
+
+    expect(onUnauthorized).toHaveBeenCalledTimes(1);
+  });
+
+  it('calls onUnauthorized when an action is rejected with 401', async () => {
+    const onUnauthorized = vi.fn();
+    stockService.deleteStock.mockRejectedValue(Object.assign(new Error('Request failed: 401'), { status: 401 }));
+    const hook = renderHook(() => useStocks(TOKEN, onUnauthorized));
+    await waitFor(() => expect(hook.result.current.isLoading).toBe(false));
+
+    await act(() => hook.result.current.removeStock(1));
+
+    expect(onUnauthorized).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not call onUnauthorized for other failures', async () => {
+    const onUnauthorized = vi.fn();
+    stockService.deleteStock.mockRejectedValue(Object.assign(new Error('Forbidden'), { status: 403 }));
+    const hook = renderHook(() => useStocks(TOKEN, onUnauthorized));
+    await waitFor(() => expect(hook.result.current.isLoading).toBe(false));
+
+    await act(() => hook.result.current.removeStock(1));
+
+    expect(onUnauthorized).not.toHaveBeenCalled();
+    expect(hook.result.current.actionError).toBe('Could not delete stock: Forbidden');
   });
 });

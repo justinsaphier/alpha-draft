@@ -7,6 +7,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+
 import com.alphadraft.skeleton.model.Role;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
@@ -15,8 +16,16 @@ import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import com.alphadraft.skeleton.config.SecurityConfig;
+import org.springframework.context.annotation.Import;
 
-@WebMvcTest(AuthController.class)
+
+// Loads the real SecurityConfig to show /auth/** is open to anonymous callers.
+@WebMvcTest(value = AuthController.class, properties = {
+    "app.jwt.secret=test-secret-that-is-at-least-thirty-two-bytes-long",
+    "app.jwt.expiration-minutes=60"
+})
+@Import({SecurityConfig.class, TokenService.class})
 class AuthControllerTest {
 
     @Autowired
