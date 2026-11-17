@@ -24,7 +24,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 @SpringBootTest(properties = {
     "spring.datasource.url=jdbc:h2:mem:skeleton-test;DB_CLOSE_DELAY=-1",
     "spring.datasource.username=sa",
-    "spring.datasource.password="
+    "spring.datasource.password=",
+    "app.jwt.secret=test-secret-that-is-at-least-thirty-two-bytes-long",
+    "app.jwt.expiration-minutes=60"
 })
 class SkeletonApplicationTests {
 
