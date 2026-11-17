@@ -64,9 +64,17 @@
 			<scope>test</scope>
 		</dependency>
 
+		<!-- Spring Security: role checks on the stock endpoints (SCRUM-43). Includes the
+		     BCrypt encoder SCRUM-42 uses, so spring-security-crypto is no longer listed. -->
 		<dependency>
-			<groupId>org.springframework.security</groupId>
-			<artifactId>spring-security-crypto</artifactId>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-security</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-security-test</artifactId>
+			<scope>test</scope>
 		</dependency>
 
 		<dependency>
