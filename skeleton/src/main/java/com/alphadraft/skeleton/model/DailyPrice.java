@@ -1,6 +1,11 @@
 package com.alphadraft.skeleton.model;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ForeignKey;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.ConstraintMode;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -23,6 +28,13 @@ public class DailyPrice {
 
     @Column(name = "stock_id", nullable = false)
     private int stockId;
+
+    // The stock this price belongs to. Read-only; the id above is what is stored. No database
+    // foreign key, so removing a stock from the pool keeps its price history.
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "stock_id", insertable = false, updatable = false,
+            foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
+    private Stock stock;
 
     @Column(name = "trade_date", nullable = false)
     private LocalDate tradeDate;
@@ -47,6 +59,10 @@ public class DailyPrice {
 
     public long getId() {
         return id;
+    }
+
+    public Stock getStock() {
+        return stock;
     }
 
     public int getStockId() {

@@ -196,3 +196,27 @@ Backend (`skeleton/`): `.\mvnw.cmd spring-boot:run` (reads `skeleton/.env`). Fro
 6. **Admin** refreshes closing prices and finalizes each month once every drafted stock has a price. A price can be corrected by hand; corrections are recorded in the audit log.
 
 Points per month = sum over the roster of (±return % × 2 for the 2x pick), with a short call flipping the sign. The season total is the sum of finished months.
+
+## Database and authentication (for review)
+
+**JPA and Supabase**
+- Connection and schema settings: `skeleton/src/main/resources/application.properties` (`SUPABASE_DB_*` variables, `ddl-auto=update`).
+- Repository wiring: `skeleton/src/main/java/com/alphadraft/skeleton/config/RepositoryConfig.java`.
+
+**Data model (JPA entities and relationships)**
+- Stocks: `model/Stock.java`. Each stock may belong to a player (`@ManyToOne User draftedBy`).
+- Users: `model/User.java`.
+- Daily closing prices: `model/DailyPrice.java`. `@ManyToOne Stock` (read-only association over the stored `stock_id`).
+- League: `league/League.java`, `league/Team.java`, `league/DraftPick.java`, `league/CallSheet.java`, `league/CallPick.java`, `league/PriceSnapshot.java`, `league/LeagueAudit.java`. Draft picks and call rows reach their team with `@ManyToOne Team`; price snapshots reach their stock with `@ManyToOne Stock`.
+- Relationship test: `skeleton/src/test/java/com/alphadraft/skeleton/league/LeagueRelationshipsTest.java`.
+
+**Sign-up and sign-in (through the backend only)**
+- Backend: `auth/AuthController.java`, `auth/AuthService.java`, `auth/TokenService.java`, `auth/JwtAuthenticationFilter.java`.
+- Frontend: `frontend/src/services/stockService.js` and `frontend/src/auth/AuthContext.jsx`. React calls only the backend; it never calls Supabase.
+
+**Two roles, enforced on both ends**
+- Backend: `config/SecurityConfig.java` (`/admin/**` and admin-only stock actions need `ROLE_ADMIN`; the league's player actions need a signed-in user).
+- Frontend: `components/NavTabs.jsx` and `App.jsx` show admin screens only to admins.
+
+**Restart persistence**
+- `skeleton/src/test/java/com/alphadraft/skeleton/RestartPersistenceTest.java` starts the app twice against the same database and checks the data survives.

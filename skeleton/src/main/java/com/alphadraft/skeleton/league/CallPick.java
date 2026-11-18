@@ -1,6 +1,11 @@
 package com.alphadraft.skeleton.league;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ForeignKey;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.ConstraintMode;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -19,6 +24,11 @@ public class CallPick {
 
     @Column(nullable = false)
     private long teamId;
+
+    // The team this row belongs to. The column above stores the id; this association lets JPA load the team.
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "teamId", insertable = false, updatable = false)
+    private Team team;
 
     @Column(nullable = false)
     private int monthIndex;
@@ -49,6 +59,7 @@ public class CallPick {
         this.levered = levered;
     }
 
+    public Team getTeam() { return team; }
     public long getId() { return id; }
     public long getTeamId() { return teamId; }
     public int getMonthIndex() { return monthIndex; }

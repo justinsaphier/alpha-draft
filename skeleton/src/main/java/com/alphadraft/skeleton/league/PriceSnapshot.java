@@ -1,6 +1,12 @@
 package com.alphadraft.skeleton.league;
 
 import jakarta.persistence.Column;
+import com.alphadraft.skeleton.model.Stock;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ForeignKey;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.ConstraintMode;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -21,6 +27,13 @@ public class PriceSnapshot {
 
     @Column(nullable = false)
     private int stockId;
+
+    // The stock this row refers to. Read-only; the id above is what is stored. No database foreign key,
+    // so deleting a stock from the pool keeps the price history.
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "stockId", insertable = false, updatable = false,
+            foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
+    private Stock stock;
 
     @Column(nullable = false)
     private String ticker;
@@ -55,6 +68,7 @@ public class PriceSnapshot {
 
     public void setApiClose(BigDecimal apiClose) { this.apiClose = apiClose; }
     public void setManualClose(BigDecimal manualClose) { this.manualClose = manualClose; }
+    public Stock getStock() { return stock; }
     public int getStockId() { return stockId; }
     public String getTicker() { return ticker; }
     public int getMonthIndex() { return monthIndex; }

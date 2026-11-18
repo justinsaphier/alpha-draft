@@ -1,6 +1,12 @@
 package com.alphadraft.skeleton.league;
 
 import jakarta.persistence.Column;
+import com.alphadraft.skeleton.model.Stock;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ForeignKey;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.ConstraintMode;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -26,10 +32,22 @@ public class DraftPick {
     @Column(nullable = false)
     private long teamId;
 
+    // The team this row belongs to. The column above stores the id; this association lets JPA load the team.
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "teamId", insertable = false, updatable = false)
+    private Team team;
+
     @Column(nullable = false)
     private int spotId;
 
     private Integer stockId;
+
+    // The stock this row refers to. Read-only; the id above is what is stored. No database foreign key,
+    // so deleting a stock from the pool keeps the price history.
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "stockId", insertable = false, updatable = false,
+            foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
+    private Stock stock;
 
     private String ticker;
 
@@ -61,6 +79,8 @@ public class DraftPick {
     public int getRound() { return round; }
     public long getTeamId() { return teamId; }
     public int getSpotId() { return spotId; }
+    public Team getTeam() { return team; }
+    public Stock getStock() { return stock; }
     public Integer getStockId() { return stockId; }
     public String getTicker() { return ticker; }
 }
