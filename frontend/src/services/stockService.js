@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://localhost:8080';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
 
 // Thrown when the backend rejects a request. Carries the HTTP status and,
 // for validation failures, a { field: message } map from the response body.
@@ -73,6 +73,25 @@ export async function updateStock(id, stock, token) {
 export async function deleteStock(id, token) {
   // DELETE returns 204 No Content, so there is no body to parse.
   await request(`/stocks/${id}`, { method: 'DELETE', headers: authHeaders(token) });
+}
+
+// Latest stored closing price for every stock that has one: [{ stockId, closePrice, tradeDate, source }].
+export async function getLatestPrices(token) {
+  const response = await request('/prices/latest', { headers: authHeaders(token) });
+  return response.json();
+}
+
+// { configured, running, lastStartedAt, lastFinishedAt, lastStored, lastError }
+export async function getRefreshStatus(token) {
+  const response = await request('/prices/refresh', { headers: authHeaders(token) });
+  return response.json();
+}
+
+// Admin only. Resolves to the status when a refresh starts (202). Rejects with an ApiError whose
+// status is 409 (one is already running) or 503 (no API key set on the server).
+export async function startPriceRefresh(token) {
+  const response = await request('/prices/refresh', { method: 'POST', headers: authHeaders(token) });
+  return response.json();
 }
 
 // Sign-up and sign-in go through the backend only; React never talks to Supabase.

@@ -10,8 +10,10 @@ import {
 
 function renderControls(overrides = {}) {
   const props = {
+    query: '',
     sortKey: DEFAULT_SORT,
     filterKey: DEFAULT_FILTER,
+    onQueryChange: vi.fn(),
     onSortChange: vi.fn(),
     onFilterChange: vi.fn(),
     ...overrides,
@@ -24,14 +26,14 @@ test('renders one option per sort and filter strategy', () => {
   renderControls();
 
   expect(screen.getByLabelText('Sort by').options).toHaveLength(Object.keys(SORT_STRATEGIES).length);
-  expect(screen.getByLabelText('Filter by sector').options).toHaveLength(Object.keys(FILTER_STRATEGIES).length);
+  expect(screen.getByLabelText('Sector').options).toHaveLength(Object.keys(FILTER_STRATEGIES).length);
 });
 
 test('shows the selected sort and filter keys', () => {
   renderControls();
 
   expect(screen.getByLabelText('Sort by')).toHaveValue(DEFAULT_SORT);
-  expect(screen.getByLabelText('Filter by sector')).toHaveValue(DEFAULT_FILTER);
+  expect(screen.getByLabelText('Sector')).toHaveValue(DEFAULT_FILTER);
 });
 
 test('reports a new sort key', () => {
@@ -48,8 +50,15 @@ test('reports a new filter key', () => {
   const otherFilter = Object.keys(FILTER_STRATEGIES).find((key) => key !== DEFAULT_FILTER);
   const { onSortChange, onFilterChange } = renderControls();
 
-  fireEvent.change(screen.getByLabelText('Filter by sector'), { target: { value: otherFilter } });
+  fireEvent.change(screen.getByLabelText('Sector'), { target: { value: otherFilter } });
 
   expect(onFilterChange).toHaveBeenCalledWith(otherFilter);
   expect(onSortChange).not.toHaveBeenCalled();
+});
+test('reports what is typed in the search box', () => {
+  const props = renderControls();
+
+  fireEvent.change(screen.getByLabelText('Search'), { target: { value: 'apple' } });
+
+  expect(props.onQueryChange).toHaveBeenCalledWith('apple');
 });

@@ -43,23 +43,28 @@ class RestartPersistenceTest {
 
     @Test
     void stocksUsersAndAuditLogSurviveARestart() {
+        int seeded;
         try (ConfigurableApplicationContext first = start()) {
-            first.getBean(StockService.class).createStock(new StockRequest("NVDA", "NVIDIA Corporation", "Technology"));
-            assertEquals(7, first.getBean(StockService.class).getAllStocks().size());
+            StockService stocks = first.getBean(StockService.class);
+            seeded = stocks.getAllStocks().size();
+            // SNOW is not in the S&P 500 starter list, so it is a new ticker here.
+            stocks.createStock(new StockRequest("SNOW", "Snowflake Inc.", "Technology"));
+            assertEquals(seeded + 1, stocks.getAllStocks().size());
         }
 
         try (ConfigurableApplicationContext second = start()) {
             List<String> tickers = second.getBean(StockService.class).getAllStocks().stream()
                     .map(s -> s.getTicker()).toList();
-            assertEquals(List.of("AAPL", "JPM", "JNJ", "XOM", "CAT", "NEE", "NVDA"), tickers);
+            assertEquals(seeded + 1, tickers.size());
+            assertEquals("SNOW", tickers.get(seeded));
 
             UserRepository users = second.getBean(UserRepository.class);
             assertEquals(1, users.count());
             assertEquals(Role.ADMIN, users.findByEmail("admin@alphadraft.test").orElseThrow().getRole());
 
             List<StockAuditEntry> log = second.getBean(AuditingStockRepository.class).getAuditLog();
-            assertEquals(7, log.size());
-            assertTrue(log.stream().anyMatch(e -> "NVDA".equals(e.ticker()) && "CREATE".equals(e.action())));
+            assertEquals(seeded + 1, log.size());
+            assertTrue(log.stream().anyMatch(e -> "SNOW".equals(e.ticker()) && "CREATE".equals(e.action())));
         }
     }
 }

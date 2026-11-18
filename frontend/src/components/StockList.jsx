@@ -8,15 +8,18 @@ import {
   FILTER_STRATEGIES,
   SORT_STRATEGIES,
   applyStrategies,
+  searchStocks,
 } from '../strategies/stockListStrategies.js';
 
-function StockList({ stocks, onUpdate, onDelete }) {
+// prices: { [stockId]: { closePrice, tradeDate } }, optional.
+function StockList({ stocks, prices = {}, owners = {}, onUpdate, onDelete }) {
   const [editingId, setEditingId] = useState(null);
   const [sortKey, setSortKey] = useState(DEFAULT_SORT);
   const [filterKey, setFilterKey] = useState(DEFAULT_FILTER);
+  const [query, setQuery] = useState('');
 
   if (stocks.length === 0) {
-    return <p>No stocks available.</p>;
+    return <p className="empty">No stocks in the pool yet.</p>;
   }
 
   async function handleSave(id, changes) {
@@ -25,19 +28,29 @@ function StockList({ stocks, onUpdate, onDelete }) {
   }
 
   // StockList only picks which strategies to use; the strategies decide how.
-  const visibleStocks = applyStrategies(stocks, FILTER_STRATEGIES[filterKey], SORT_STRATEGIES[sortKey]);
+  const visibleStocks = applyStrategies(
+    searchStocks(stocks, query),
+    FILTER_STRATEGIES[filterKey],
+    SORT_STRATEGIES[sortKey],
+  );
 
   return (
-    <section className="stock-list-section">
+    <section className="stock-list-section" aria-label="Stock pool">
       <StockListControls
+        query={query}
         sortKey={sortKey}
         filterKey={filterKey}
+        onQueryChange={setQuery}
         onSortChange={setSortKey}
         onFilterChange={setFilterKey}
       />
 
+      <p className="result-count" aria-live="polite">
+        Showing {visibleStocks.length} of {stocks.length} stocks
+      </p>
+
       {visibleStocks.length === 0 ? (
-        <p>No stocks match this filter.</p>
+        <p className="empty">No stocks match your search.</p>
       ) : (
         <ul className="stock-list">
           {visibleStocks.map((stock) =>
@@ -54,6 +67,8 @@ function StockList({ stocks, onUpdate, onDelete }) {
               <StockCard
                 key={stock.id}
                 stock={stock}
+                price={prices[stock.id]}
+                owner={owners[stock.ticker]}
                 onEdit={onUpdate && (() => setEditingId(stock.id))}
                 onDelete={onDelete && (() => onDelete(stock.id))}
               />

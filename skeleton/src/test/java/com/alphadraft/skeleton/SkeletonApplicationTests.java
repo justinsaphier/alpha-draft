@@ -4,6 +4,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import com.alphadraft.skeleton.config.StockDataSeeder;
+import com.alphadraft.skeleton.model.Stock;
 import com.alphadraft.skeleton.model.StockRequest;
 import com.alphadraft.skeleton.repository.AuditingStockRepository;
 import com.alphadraft.skeleton.repository.StockAuditEntry;
@@ -42,17 +44,18 @@ class SkeletonApplicationTests {
     @Test
     void springInjectsAuditingRepositoryIntoService() {
         assertInstanceOf(AuditingStockRepository.class, stockRepository);
-        assertEquals(6, stockService.getAllStocks().size());
+        assertEquals(StockDataSeeder.STARTER_STOCKS.size(), stockService.getAllStocks().size());
     }
 
     @Test
     void seededStarterStocksAreRecordedAsCreates() {
         List<StockAuditEntry> log = ((AuditingStockRepository) stockRepository).getAuditLog();
+        int seeded = StockDataSeeder.STARTER_STOCKS.size();
 
-        assertEquals(List.of("AAPL", "JPM", "JNJ", "XOM", "CAT", "NEE"),
-                log.stream().limit(6).map(StockAuditEntry::ticker).toList());
+        assertEquals(StockDataSeeder.STARTER_STOCKS.stream().map(Stock::getTicker).toList(),
+                log.stream().limit(seeded).map(StockAuditEntry::ticker).toList());
         assertEquals(List.of("CREATE"),
-                log.stream().limit(6).map(StockAuditEntry::action).distinct().toList());
+                log.stream().limit(seeded).map(StockAuditEntry::action).distinct().toList());
     }
 
     @Test
@@ -71,6 +74,6 @@ class SkeletonApplicationTests {
                 "ticker", "Ticker already exists.",
                 "name", "Company name is required.",
                 "sector", "Choose a sector from the list."), e.getErrors());
-        assertEquals(6, stockService.getAllStocks().size());
+        assertEquals(StockDataSeeder.STARTER_STOCKS.size(), stockService.getAllStocks().size());
     }
 }

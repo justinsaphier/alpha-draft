@@ -25,10 +25,21 @@ export const FILTER_STRATEGIES = {
   ...Object.fromEntries(SECTORS.map((sector) => [sector, sectorFilter(sector)])),
 };
 
-export const DEFAULT_SORT = 'added';
+export const DEFAULT_SORT = 'tickerAsc';
 export const DEFAULT_FILTER = 'all';
 
 // Applies one filter strategy and one sort strategy without changing the input list.
 export function applyStrategies(stocks, filterStrategy, sortStrategy) {
   return stocks.filter(filterStrategy.matches).sort(sortStrategy.compare);
+}
+// Keeps stocks whose ticker or company name contains the search text (case-insensitive).
+// A blank search keeps everything.
+export function searchStocks(stocks, query) {
+  const needle = query.trim().toLowerCase();
+  if (!needle) {
+    return stocks;
+  }
+  return stocks.filter(
+    (stock) => stock.ticker.toLowerCase().includes(needle) || stock.name.toLowerCase().includes(needle),
+  );
 }

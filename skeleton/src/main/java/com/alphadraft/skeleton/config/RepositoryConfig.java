@@ -1,6 +1,9 @@
 package com.alphadraft.skeleton.config;
 
 import com.alphadraft.skeleton.repository.AuditingStockRepository;
+import com.alphadraft.skeleton.repository.DailyPriceJpaRepository;
+import com.alphadraft.skeleton.repository.DailyPriceRepository;
+import com.alphadraft.skeleton.repository.JpaDailyPriceRepository;
 import com.alphadraft.skeleton.repository.JpaStockAuditLog;
 import com.alphadraft.skeleton.repository.JpaStockRepository;
 import com.alphadraft.skeleton.repository.StockAuditJpaRepository;
@@ -20,5 +23,10 @@ public class RepositoryConfig {
         return new AuditingStockRepository(
                 new JpaStockRepository(stockJpaRepository),
                 new JpaStockAuditLog(stockAuditJpaRepository));
+    }
+
+    @Bean
+    public DailyPriceRepository dailyPriceRepository(DailyPriceJpaRepository dailyPriceJpaRepository) {
+        return new JpaDailyPriceRepository(dailyPriceJpaRepository);
     }
 }

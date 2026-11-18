@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { SECTORS } from '../constants/sectors.js';
-import { FILTER_STRATEGIES, SORT_STRATEGIES, applyStrategies } from './stockListStrategies.js';
+import { FILTER_STRATEGIES, SORT_STRATEGIES, applyStrategies, searchStocks } from './stockListStrategies.js';
 
 const [sectorA, sectorB] = SECTORS;
 
@@ -44,5 +44,20 @@ describe('stock list strategies', () => {
   it('does not change the original list', () => {
     applyStrategies(stocks, FILTER_STRATEGIES.all, SORT_STRATEGIES.tickerAsc);
     expect(tickers(stocks)).toEqual(['MSFT', 'AAPL', 'NVDA']);
+  });
+});
+describe('searchStocks', () => {
+  it('matches ticker or company name, ignoring case', () => {
+    expect(tickers(searchStocks(stocks, 'msf'))).toEqual(['MSFT']);
+    expect(tickers(searchStocks(stocks, 'ZETA'))).toEqual(['AAPL']);
+  });
+
+  it('keeps everything for a blank search and ignores surrounding spaces', () => {
+    expect(searchStocks(stocks, '   ')).toBe(stocks);
+    expect(tickers(searchStocks(stocks, '  nvda '))).toEqual(['NVDA']);
+  });
+
+  it('returns nothing when no stock matches', () => {
+    expect(searchStocks(stocks, 'zzz')).toEqual([]);
   });
 });

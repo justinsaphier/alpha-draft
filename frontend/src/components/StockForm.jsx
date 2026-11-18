@@ -93,9 +93,9 @@ function StockForm({ initialStock = EMPTY_STOCK, submitLabel = 'Add Stock', onSu
         ))}
       </select>
       {renderError('sector')}
-      <button type="submit">{submitLabel}</button>
+      <button type="submit" className="button button--primary">{submitLabel}</button>
       {onCancel && (
-        <button type="button" onClick={onCancel}>
+        <button type="button" className="button button--quiet" onClick={onCancel}>
           Cancel
         </button>
       )}
