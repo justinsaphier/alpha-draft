@@ -5,7 +5,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.alphadraft.skeleton.model.Stock;
 import com.alphadraft.skeleton.testsupport.FakeStockRepository;
+import com.alphadraft.skeleton.validation.AllowedSectorRule;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
@@ -24,35 +26,47 @@ class StockDataSeederTest {
     }
 
     @Test
-    void runSavesExactlySixStocks() {
+    void runSavesEveryStarterStock() {
         RecordingStockRepository repository = new RecordingStockRepository();
 
         new StockDataSeeder(repository).run();
 
-        assertEquals(6, repository.saved.size());
-        assertEquals(6, repository.findAll().size());
+        assertEquals(StockDataSeeder.STARTER_STOCKS.size(), repository.saved.size());
+        assertEquals(StockDataSeeder.STARTER_STOCKS.size(), repository.findAll().size());
     }
 
     @Test
-    void runSavesTheStarterStocks() {
+    void runSavesTheStarterStocksInFileOrder() {
         RecordingStockRepository repository = new RecordingStockRepository();
 
         new StockDataSeeder(repository).run();
 
         List<String> tickers = repository.findAll().stream().map(Stock::getTicker).toList();
-        assertEquals(List.of("AAPL", "JPM", "JNJ", "XOM", "CAT", "NEE"), tickers);
+        List<String> expected = StockDataSeeder.STARTER_STOCKS.stream().map(Stock::getTicker).toList();
+        assertEquals(expected, tickers);
+        assertTrue(tickers.containsAll(List.of("AAPL", "JPM", "NEE")));
     }
 
     @Test
-    void runningTwiceStillLeavesExactlySixStocks() {
+    void starterFileListsTheFullIndexWithUniqueTickersAndAllowedSectors() {
+        List<String> tickers = StockDataSeeder.STARTER_STOCKS.stream().map(Stock::getTicker).toList();
+
+        assertTrue(tickers.size() >= 500, "expected the full S&P 500, got " + tickers.size());
+        assertEquals(tickers.size(), new HashSet<>(tickers).size());
+        assertTrue(StockDataSeeder.STARTER_STOCKS.stream()
+                .allMatch(stock -> AllowedSectorRule.SECTORS.contains(stock.getSector())));
+    }
+
+    @Test
+    void runningTwiceStillLeavesEachStarterStockOnce() {
         RecordingStockRepository repository = new RecordingStockRepository();
         StockDataSeeder seeder = new StockDataSeeder(repository);
 
         seeder.run();
         seeder.run();
 
-        assertEquals(6, repository.saved.size());
-        assertEquals(6, repository.findAll().size());
+        assertEquals(StockDataSeeder.STARTER_STOCKS.size(), repository.saved.size());
+        assertEquals(StockDataSeeder.STARTER_STOCKS.size(), repository.findAll().size());
     }
 
     @Test
@@ -76,7 +90,7 @@ class StockDataSeederTest {
 
         seeder.run();
 
-        assertEquals(5, repository.findAll().size());
+        assertEquals(StockDataSeeder.STARTER_STOCKS.size() - 1, repository.findAll().size());
     }
 
     @Test

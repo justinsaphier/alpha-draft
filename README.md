@@ -45,7 +45,7 @@ Calls lock once the month begins.
 
 ## Pricing Source
 
-Price data is fetched via a market-data API (Twelve Data or Finnhub are the leading candidates — both comfortably handle a one-shot monthly refresh of the full \~120–150 stock pool within their free-tier limits; Alpha Vantage's free tier is too rate-limited for a single-batch refresh at this scale).
+Price data comes from **Twelve Data** (`/quote`, free tier: 8 calls a minute, so a full refresh of the 503-stock S&P 500 pool takes about an hour). Set `TWELVE_DATA_API_KEY` in `skeleton/.env`.
 
 - **Ingestion, not live lookup.** Admin (or a scheduled task) triggers the monthly refresh; results are cached in `price_snapshots` and reused for every score/leaderboard calculation.  
 - **Admin override fallback.** If the API fails to return a price for a stock, or returns something clearly wrong, Admin can manually enter or correct that stock's closing price. Manual entries are flagged as `source: manual` versus `source: api` so the team can always see where a price came from.  
@@ -66,7 +66,7 @@ The two-role split is a real authentication requirement, not just a feature: Adm
 **Backend** (Spring Boot + JPA on Supabase PostgreSQL):
 
 1. `cd skeleton`, copy `.env.example` to `.env`, and fill in the Supabase **Session pooler** connection (Supabase → Connect), a `JWT_SECRET`, and an `ADMIN_EMAIL` / `ADMIN_PASSWORD`.
-2. `./mvnw spring-boot:run` (Windows PowerShell: `.\mvnw.cmd spring-boot:run`). The app reads `.env` itself, creates or updates the `users`, `stocks` and `stock_audit_log` tables, seeds six starter stocks into an empty table, and creates the admin account. It runs on http://localhost:8080.
+2. `./mvnw spring-boot:run` (Windows PowerShell: `.\mvnw.cmd spring-boot:run`). The app reads `.env` itself, creates or updates the `users`, `stocks` and `stock_audit_log` tables, seeds every S&P 500 stock (from `skeleton/src/main/resources/starter-stocks.txt`) into an empty table, and creates the admin account. It runs on http://localhost:8080.
 
 **Frontend:** `cd frontend`, then `npm install` and `npm run dev`, and open http://localhost:5173.
 
@@ -182,3 +182,17 @@ A few rules the team should settle explicitly before they come up mid-sprint:
 - **Tie-breaker** for identical leaderboard scores.  
 - **Corporate actions** — what happens if a held stock is acquired or delisted mid-season.  
 - **Price-entry immutability** — should a finalized month's prices be locked/audit-logged rather than freely editable.
+
+
+## Running the league
+
+Backend (`skeleton/`): `.\mvnw.cmd spring-boot:run` (reads `skeleton/.env`). Frontend (`frontend/`): `npm install` then `npm run dev` (http://localhost:5173).
+
+1. **Players** create an account, then ask to join with a team name.
+2. **Admin** (Admin tab) accepts each request. The league size (6–10) decides how many bot teams fill the rest.
+3. **Admin** sets the draft day and time, or starts the draft by hand. The draft also starts on its own at the set time. Bots pick on their turns; players pick in the Draft room.
+4. **Admin** sets the season's first month (for example `2026-12`) and starts the season. The season is a full quarter: three months.
+5. Each month, players set long or short on every roster stock and one 2x pick, then submit. Calls lock when the month starts; a player who does not submit carries over last month's calls. Bots submit random calls.
+6. **Admin** refreshes closing prices and finalizes each month once every drafted stock has a price. A price can be corrected by hand; corrections are recorded in the audit log.
+
+Points per month = sum over the roster of (±return % × 2 for the 2x pick), with a short call flipping the sign. The season total is the sum of finished months.

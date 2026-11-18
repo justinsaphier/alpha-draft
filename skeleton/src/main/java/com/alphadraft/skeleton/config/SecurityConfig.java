@@ -23,6 +23,10 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 //   /auth/**                          anyone (sign-up and sign-in)
 //   GET /stocks, GET /stocks/{id}     any signed-in user
 //   POST, PUT, DELETE on /stocks      ADMIN only
+//   GET /prices/**                    any signed-in user
+//   POST /prices/refresh              ADMIN only
+//   /league/**                        any signed-in user (joining, drafting, calls, standings)
+//   /admin/**                         ADMIN only (league decisions, season, prices)
 // No token or a bad token -> 401. Signed in without the needed role -> 403.
 @Configuration
 public class SecurityConfig {
@@ -43,6 +47,10 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/auth/**", "/error").permitAll()
                         .requestMatchers(HttpMethod.GET, "/stocks", "/stocks/**").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/prices/**").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/prices/refresh").hasRole("ADMIN")
+                        .requestMatchers("/league", "/league/**").authenticated()
+                        .requestMatchers("/admin/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.POST, "/stocks", "/stocks/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/stocks/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/stocks/**").hasRole("ADMIN")
@@ -54,9 +62,10 @@ public class SecurityConfig {
     // Replaces the old CorsConfig. CORS has to be handled by Spring Security now, otherwise the
     // browser's preflight request is rejected before it reaches Spring MVC.
     @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
+    public CorsConfigurationSource corsConfigurationSource(
+            @org.springframework.beans.factory.annotation.Value("${app.cors.allowed-origin:" + FRONTEND_ORIGIN + "}") String origin) {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of(FRONTEND_ORIGIN));
+        config.setAllowedOrigins(List.of(origin));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("Authorization", "Content-Type"));
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

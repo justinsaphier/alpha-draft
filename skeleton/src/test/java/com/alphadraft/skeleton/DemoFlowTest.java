@@ -36,8 +36,9 @@ import org.springframework.test.web.servlet.MockMvc;
 @AutoConfigureMockMvc
 class DemoFlowTest {
 
-    private static final String NVDA_JSON =
-            "{\"ticker\":\"NVDA\",\"name\":\"NVIDIA Corporation\",\"sector\":\"Technology\"}";
+    // SNOW is not in the S&P 500 starter list, so it can be added on top of the seeded stocks.
+    private static final String SNOW_JSON =
+            "{\"ticker\":\"SNOW\",\"name\":\"Snowflake Inc.\",\"sector\":\"Technology\"}";
 
     @Autowired
     private MockMvc mockMvc;
@@ -84,14 +85,14 @@ class DemoFlowTest {
 
         // The admin-only action: refused for the player, nothing stored.
         mockMvc.perform(post("/stocks").header(HttpHeaders.AUTHORIZATION, bearer(player))
-                        .contentType(MediaType.APPLICATION_JSON).content(NVDA_JSON))
+                        .contentType(MediaType.APPLICATION_JSON).content(SNOW_JSON))
                 .andExpect(status().isForbidden());
-        assertTrue(stocks.findAll().stream().noneMatch(s -> s.getTicker().equals("NVDA")));
+        assertTrue(stocks.findAll().stream().noneMatch(s -> s.getTicker().equals("SNOW")));
 
         // Accepted for the admin, stored in the stocks table and recorded in the audit table.
         long auditBefore = auditLog.count();
         String created = mockMvc.perform(post("/stocks").header(HttpHeaders.AUTHORIZATION, bearer(admin))
-                        .contentType(MediaType.APPLICATION_JSON).content(NVDA_JSON))
+                        .contentType(MediaType.APPLICATION_JSON).content(SNOW_JSON))
                 .andExpect(status().isCreated())
                 .andReturn().getResponse().getContentAsString();
         int id = JsonPath.read(created, "$.id");
@@ -108,7 +109,7 @@ class DemoFlowTest {
     @Test
     void stocksNeedASignedInUser() throws Exception {
         mockMvc.perform(get("/stocks")).andExpect(status().isUnauthorized());
-        mockMvc.perform(post("/stocks").contentType(MediaType.APPLICATION_JSON).content(NVDA_JSON))
+        mockMvc.perform(post("/stocks").contentType(MediaType.APPLICATION_JSON).content(SNOW_JSON))
                 .andExpect(status().isUnauthorized());
     }
 }

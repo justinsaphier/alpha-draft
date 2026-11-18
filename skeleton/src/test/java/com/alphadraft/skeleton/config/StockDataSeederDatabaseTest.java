@@ -22,7 +22,8 @@ import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 })
 class StockDataSeederDatabaseTest {
 
-    private static final List<String> STARTER_TICKERS = List.of("AAPL", "JPM", "JNJ", "XOM", "CAT", "NEE");
+    private static final List<String> STARTER_TICKERS = StockDataSeeder.STARTER_STOCKS.stream()
+            .map(Stock::getTicker).toList();
 
     @Autowired
     private StockJpaRepository stockJpaRepository;
@@ -41,19 +42,19 @@ class StockDataSeederDatabaseTest {
     }
 
     @Test
-    void firstRunLoadsTheSixStarterStocksInOrder() {
+    void firstRunLoadsTheStarterStocksInOrder() {
         seeder.run();
 
         assertEquals(STARTER_TICKERS, tickers());
     }
 
     @Test
-    void simulatedRestartsLeaveExactlySixStocks() {
+    void simulatedRestartsLeaveEachStarterStockOnce() {
         seeder.run();
         seeder.run();
         seeder.run();
 
-        assertEquals(6, stockJpaRepository.count());
+        assertEquals(STARTER_TICKERS.size(), stockJpaRepository.count());
         assertEquals(STARTER_TICKERS, tickers());
     }
 
@@ -71,12 +72,12 @@ class StockDataSeederDatabaseTest {
     @Test
     void stocksAddedAfterSeedingSurviveARestart() {
         seeder.run();
-        Stock msft = repository.save(new Stock(0, "MSFT", "Microsoft Corporation", "Technology"));
+        Stock snow = repository.save(new Stock(0, "SNOW", "Snowflake Inc.", "Technology"));
 
         seeder.run();
 
-        assertEquals(7, stockJpaRepository.count());
-        assertTrue(msft.getId() > repository.findAll().get(5).getId());
+        assertEquals(STARTER_TICKERS.size() + 1, stockJpaRepository.count());
+        assertTrue(snow.getId() > repository.findAll().get(STARTER_TICKERS.size() - 1).getId());
     }
 
     @Test
@@ -85,13 +86,15 @@ class StockDataSeederDatabaseTest {
 
         assertTrue(repository.existsByTicker("aapl", null));
         assertTrue(repository.existsByTicker("Nee", null));
-        assertFalse(repository.existsByTicker("MSFT", null));
+        assertFalse(repository.existsByTicker("SNOW", null));
     }
 
     @Test
     void updatingASeededStockKeepsItsTickerFreeForItself() {
         seeder.run();
-        int aaplId = repository.findAll().get(0).getId();
+        int aaplId = repository.findAll().stream()
+                .filter(stock -> stock.getTicker().equals("AAPL"))
+                .findFirst().orElseThrow().getId();
 
         assertFalse(repository.existsByTicker("AAPL", aaplId));
         assertTrue(repository.existsByTicker("JPM", aaplId));
