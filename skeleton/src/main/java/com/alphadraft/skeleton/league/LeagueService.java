@@ -102,6 +102,14 @@ public class LeagueService {
 
     @Transactional
     public League updateSettings(String name, int leagueSize, Instant draftAt, String firstMonth) {
+        return updateSettings(name, leagueSize, draftAt, firstMonth, 90);
+    }
+
+    @Transactional
+    public League updateSettings(String name, int leagueSize, Instant draftAt, String firstMonth, int pickSeconds) {
+        if (pickSeconds < 30 || pickSeconds > 600) {
+            throw new LeagueException(HttpStatus.BAD_REQUEST, "A pick has between 30 seconds and 10 minutes.");
+        }
         League league = league();
         requireStatus(league, LeagueStatus.REGISTRATION, "Settings can only change before the draft.");
         if (name == null || name.isBlank()) {
@@ -123,8 +131,10 @@ public class LeagueService {
         league.setLeagueSize(leagueSize);
         league.setDraftAt(draftAt);
         league.setFirstMonth(first.toString());
-        log("SETTINGS", "League \"" + league.getName() + "\": " + leagueSize + " teams, draft "
-                + (draftAt == null ? "started by hand" : "at " + draftAt) + ", season from " + first);
+        league.setPickSeconds(pickSeconds);
+        log("SETTINGS", "League \"" + league.getName() + "\": " + leagueSize + " teams, " + pickSeconds
+                + " seconds a pick, draft " + (draftAt == null ? "started by hand" : "at " + draftAt)
+                + ", season from " + first);
         return league;
     }
 

@@ -48,6 +48,7 @@ function AdminPage({ token, onUnauthorized }) {
         leagueSize: next.leagueSize,
         draftAt: toLocalInput(next.draftAt),
         firstMonth: next.firstMonth ?? nextMonthInput(),
+        pickSeconds: next.pickSeconds ?? 90,
       });
       setError(null);
     } catch (err) {
@@ -94,6 +95,7 @@ function AdminPage({ token, onUnauthorized }) {
             leagueSize: Number(settings.leagueSize),
             draftAt: settings.draftAt ? new Date(settings.draftAt).toISOString() : null,
             firstMonth: settings.firstMonth,
+            pickSeconds: Number(settings.pickSeconds),
           },
           token,
         ),
@@ -132,6 +134,10 @@ function AdminPage({ token, onUnauthorized }) {
             <label className="field">
               <span>Draft day and time (blank = start by hand)</span>
               <input type="datetime-local" value={settings.draftAt} disabled={locked} onChange={(e) => setSettings({ ...settings, draftAt: e.target.value })} />
+            </label>
+            <label className="field">
+              <span>Seconds to make each pick (30–600)</span>
+              <input type="number" min="30" max="600" value={settings.pickSeconds} disabled={locked} onChange={(e) => setSettings({ ...settings, pickSeconds: e.target.value })} />
             </label>
             <label className="field">
               <span>First month of the quarter (yyyy-mm)</span>

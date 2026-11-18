@@ -35,6 +35,9 @@ public class League {
     // -1 before the season, otherwise the live month (0..2).
     private int currentMonth = -1;
 
+    // Seconds a player has to make each draft pick. Null on rows created before the timer existed.
+    private Integer pickSeconds;
+
     protected League() {
     }
 
@@ -55,6 +58,8 @@ public class League {
     public void setDraftAt(Instant draftAt) { this.draftAt = draftAt; }
     public String getFirstMonth() { return firstMonth; }
     public void setFirstMonth(String firstMonth) { this.firstMonth = firstMonth; }
+    public int getPickSeconds() { return pickSeconds == null ? 90 : pickSeconds; }
+    public void setPickSeconds(int pickSeconds) { this.pickSeconds = pickSeconds; }
     public int getCurrentMonth() { return currentMonth; }
     public void setCurrentMonth(int currentMonth) { this.currentMonth = currentMonth; }
 }

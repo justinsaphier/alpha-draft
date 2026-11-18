@@ -48,7 +48,7 @@ public class LeagueController {
     }
 
     public record DraftView(LeagueStatus status, Integer currentOverall, boolean myTurn, String onTheClock,
-                            List<DraftPickView> picks, List<Eligible> eligible) {
+                            Instant onTheClockUntil, List<DraftPickView> picks, List<Eligible> eligible) {
     }
 
     public record OwnerRow(String ticker, long teamId, String teamName, String teamColor) {
@@ -110,6 +110,15 @@ public class LeagueController {
             }
         }
         return rows;
+    }
+
+    // This month's calls priced against today's closes, for the signed-in player's team.
+    @GetMapping("/live")
+    public List<SeasonService.LiveRow> live(Principal principal) {
+        return league.teamOf(principal.getName())
+                .filter(t -> t.getStatus() == TeamStatus.ACCEPTED)
+                .map(t -> season.liveBreakdown(t.getId()))
+                .orElse(List.of());
     }
 
     @GetMapping("/standings")
@@ -214,7 +223,8 @@ public class LeagueController {
                 eligible.sort(java.util.Comparator.comparing(Eligible::ticker));
             }
         }
-        return new DraftView(current.getStatus(), turn == null ? null : turn.getOverall(), myTurn, onClock, picks, eligible);
+        Instant until = turn == null ? null : turn.getDeadline();
+        return new DraftView(current.getStatus(), turn == null ? null : turn.getOverall(), myTurn, onClock, until, picks, eligible);
     }
 
     private Map<Long, Team> teamIndex() {

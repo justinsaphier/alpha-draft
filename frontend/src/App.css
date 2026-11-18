@@ -421,6 +421,19 @@ select:focus {
   }
 }
 
+/* Draft clock ------------------------------------------------------------ */
+
+.countdown {
+  margin: 8px 0 0;
+  font-weight: 700;
+  color: var(--text-h);
+  font-variant-numeric: tabular-nums;
+}
+
+.countdown.is-urgent {
+  color: var(--danger);
+}
+
 /* Section tabs ----------------------------------------------------------- */
 
 .nav-tabs {

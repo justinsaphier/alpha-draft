@@ -5,6 +5,10 @@ import com.alphadraft.skeleton.model.Stock;
 import com.alphadraft.skeleton.repository.DailyPriceRepository;
 import com.alphadraft.skeleton.repository.StockRepository;
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.YearMonth;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -26,7 +30,14 @@ public class SeasonService {
                               List<Double> monthly, Double live, double total, double best) {
     }
 
+    private static final Logger log = LoggerFactory.getLogger(SeasonService.class);
+
+    public record LiveRow(String ticker, String name, String direction, boolean levered, BigDecimal startPrice,
+                          BigDecimal livePrice, double returnPct, double points) {
+    }
+
     private final LeagueService league;
+    private final LeagueNotifications notifications;
     private final CallService calls;
     private final CallPickRepository callPicks;
     private final DraftPickRepository draftPicks;
@@ -34,10 +45,11 @@ public class SeasonService {
     private final DailyPriceRepository prices;
     private final StockRepository stocks;
 
-    public SeasonService(LeagueService league, CallService calls, CallPickRepository callPicks,
-                         DraftPickRepository draftPicks, PriceSnapshotRepository snapshots,
-                         DailyPriceRepository prices, StockRepository stocks) {
+    public SeasonService(LeagueService league, LeagueNotifications notifications, CallService calls,
+                         CallPickRepository callPicks, DraftPickRepository draftPicks,
+                         PriceSnapshotRepository snapshots, DailyPriceRepository prices, StockRepository stocks) {
         this.league = league;
+        this.notifications = notifications;
         this.calls = calls;
         this.callPicks = callPicks;
         this.draftPicks = draftPicks;
@@ -100,6 +112,81 @@ public class SeasonService {
             current.setCurrentMonth(next);
             calls.lockMonth(next);
             league.log("SCORE", calls.label(month) + " is final. " + calls.label(next) + " is live.");
+        }
+        notifyMonthScored(month, next < League.MONTHS_IN_SEASON ? calls.label(next) : null);
+    }
+
+    // Closes the live month by itself once it has ended and every drafted stock has a recent price.
+    // Returns false (and changes nothing) while prices are missing or stale, so the next run tries again.
+    @Transactional
+    public boolean finalizeIfDue(LocalDate today) {
+        League current = league.league();
+        if (current.getStatus() != LeagueStatus.IN_SEASON) {
+            return false;
+        }
+        YearMonth live = LeagueService.parseMonth(current.getFirstMonth()).plusMonths(current.getCurrentMonth());
+        if (!YearMonth.from(today).isAfter(live)) {
+            return false;
+        }
+        LocalDate fresh = live.atEndOfMonth().minusDays(3);
+        Map<Integer, DailyPrice> latest = latestByStockId();
+        for (RosterStock stock : rosterStocks()) {
+            DailyPrice price = latest.get(stock.stockId());
+            if (price == null || price.getTradeDate().isBefore(fresh)) {
+                log.warn("Month not closed automatically: {} has no current price yet", stock.ticker());
+                return false;
+            }
+        }
+        finalizeMonth();
+        return true;
+    }
+
+    // Each player's calls for the live month, priced from the latest close against the month's start.
+    public List<LiveRow> liveBreakdown(long teamId) {
+        League current = league.league();
+        if (current.getStatus() != LeagueStatus.IN_SEASON) {
+            return List.of();
+        }
+        int month = current.getCurrentMonth();
+        Map<String, PriceSnapshot> index = snapshotIndex();
+        Map<Integer, DailyPrice> live = latestByStockId();
+        Map<String, RosterStock> byTicker = new HashMap<>();
+        for (RosterStock stock : rosterStocksFor(teamId)) {
+            byTicker.put(stock.ticker(), stock);
+        }
+        List<LiveRow> rows = new ArrayList<>();
+        for (CallPick pick : callPicks.findByTeamIdAndMonthIndex(teamId, month)) {
+            RosterStock stock = byTicker.get(pick.getTicker());
+            if (stock == null) {
+                continue;
+            }
+            PriceSnapshot start = index.get(key(stock.stockId(), month - 1));
+            BigDecimal startPrice = start == null ? null : start.effective();
+            DailyPrice latestPrice = live.get(stock.stockId());
+            BigDecimal livePrice = latestPrice == null ? null : latestPrice.getClosePrice();
+            double ret = 0;
+            double points = 0;
+            if (startPrice != null && livePrice != null && startPrice.signum() != 0) {
+                ret = livePrice.doubleValue() / startPrice.doubleValue() - 1;
+                points = Scoring.points(ret, pick.getDirection(), pick.isLevered());
+            }
+            rows.add(new LiveRow(stock.ticker(), stock.name(), pick.getDirection(), pick.isLevered(),
+                    startPrice, livePrice, ret * 100, points));
+        }
+        rows.sort(java.util.Comparator.comparing(LiveRow::ticker));
+        return rows;
+    }
+
+    private void notifyMonthScored(int month, String nextLabel) {
+        Map<Long, StandingRow> rows = new HashMap<>();
+        for (StandingRow row : standings()) {
+            rows.put(row.teamId(), row);
+        }
+        for (Team team : league.seatedTeams()) {
+            StandingRow row = rows.get(team.getId());
+            if (!team.isBot() && row != null) {
+                notifications.monthScored(team, calls.label(month), row.monthly().get(month), nextLabel);
+            }
         }
     }
 

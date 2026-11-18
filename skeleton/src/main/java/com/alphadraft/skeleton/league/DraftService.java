@@ -3,6 +3,7 @@ package com.alphadraft.skeleton.league;
 import com.alphadraft.skeleton.model.Stock;
 import com.alphadraft.skeleton.repository.StockRepository;
 import java.time.Clock;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -14,8 +15,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-// The snake draft: start it, let bots pick on their turn, and take a human's pick when it is their turn.
-// Each round a team picks one stock from that round's sector group, and no ticker can be picked twice.
+// The snake draft: start it, let bots pick on their turn, take a player's pick when it is their turn,
+// and pick for a player whose timer runs out. Each round a team picks one stock from that round's
+// sector group, and no ticker can be picked twice.
 @Service
 public class DraftService {
 
@@ -23,15 +25,17 @@ public class DraftService {
     private final TeamRepository teams;
     private final DraftPickRepository picks;
     private final StockRepository stocks;
+    private final LeagueNotifications notifications;
     private final Clock clock;
     private final Random random;
 
     public DraftService(LeagueService league, TeamRepository teams, DraftPickRepository picks,
-                        StockRepository stocks, Clock clock, Random random) {
+                        StockRepository stocks, LeagueNotifications notifications, Clock clock, Random random) {
         this.league = league;
         this.teams = teams;
         this.picks = picks;
         this.stocks = stocks;
+        this.notifications = notifications;
         this.clock = clock;
         this.random = random;
     }
@@ -69,6 +73,7 @@ public class DraftService {
         current.setStatus(LeagueStatus.DRAFTING);
         league.log("DRAFT", "Draft started with " + accepted.size() + " players and " + bots
                 + " bots, in snake order");
+        notifications.draftStarted(accepted);
         advanceBots();
     }
 
@@ -99,7 +104,27 @@ public class DraftService {
         advanceBots();
     }
 
-    // Bots pick until it is a human's turn or the draft is over.
+    // Called on a schedule: if a player's timer has run out, pick for them and carry on.
+    @Transactional
+    public boolean autoPickExpired() {
+        League current = league.league();
+        if (current.getStatus() != LeagueStatus.DRAFTING) {
+            return false;
+        }
+        Optional<DraftPick> turn = nextPick();
+        if (turn.isEmpty() || turn.get().getDeadline() == null || clock.instant().isBefore(turn.get().getDeadline())) {
+            return false;
+        }
+        Team team = teams.findById(turn.get().getTeamId()).orElseThrow();
+        Stock choice = choose(turn.get());
+        league.log("PICK", "Timer ran out: " + choice.getTicker() + " drafted for " + team.getName()
+                + " in round " + turn.get().getRound());
+        notifications.autoPicked(team, choice.getTicker());
+        advanceBots();
+        return true;
+    }
+
+    // Bots pick until it is a player's turn or the draft is over.
     @Transactional
     public void advanceBots() {
         while (true) {
@@ -110,21 +135,38 @@ public class DraftService {
             }
             Team team = teams.findById(next.get().getTeamId()).orElseThrow();
             if (!team.isBot()) {
+                startClock(next.get(), team);
                 return;
             }
-            Set<Integer> taken = takenStockIds();
-            List<Stock> eligible = stocks.findAll().stream()
-                    .filter(s -> RosterSpots.spotForSector(s.getSector()) == next.get().getSpotId())
-                    .filter(s -> !taken.contains(s.getId()))
-                    .toList();
-            if (eligible.isEmpty()) {
-                throw new IllegalStateException("No stock is left for spot " + next.get().getSpotId());
-            }
-            Stock choice = eligible.get(random.nextInt(eligible.size()));
-            next.get().make(choice.getId(), choice.getTicker(), clock.instant());
-            picks.save(next.get());
+            Stock choice = choose(next.get());
             league.log("PICK", team.getName() + " (bot) drafted " + choice.getTicker() + " in round " + next.get().getRound());
         }
+    }
+
+    // A player's turn starts the timer and tells them it is their pick.
+    private void startClock(DraftPick pick, Team team) {
+        if (pick.getDeadline() == null) {
+            int seconds = league.league().getPickSeconds();
+            pick.setDeadline(clock.instant().plusSeconds(seconds));
+            picks.save(pick);
+            notifications.yourPick(team, RosterSpots.labelFor(pick.getSpotId()), seconds);
+        }
+    }
+
+    // Picks a random stock that fits the pick's spot and is still free, then records it.
+    private Stock choose(DraftPick pick) {
+        Set<Integer> taken = takenStockIds();
+        List<Stock> eligible = stocks.findAll().stream()
+                .filter(s -> RosterSpots.spotForSector(s.getSector()) == pick.getSpotId())
+                .filter(s -> !taken.contains(s.getId()))
+                .toList();
+        if (eligible.isEmpty()) {
+            throw new IllegalStateException("No stock is left for spot " + pick.getSpotId());
+        }
+        Stock choice = eligible.get(random.nextInt(eligible.size()));
+        pick.make(choice.getId(), choice.getTicker(), clock.instant());
+        picks.save(pick);
+        return choice;
     }
 
     private void completeDraft() {

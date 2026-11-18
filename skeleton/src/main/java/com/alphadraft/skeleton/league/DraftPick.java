@@ -35,6 +35,9 @@ public class DraftPick {
 
     private Instant madeAt;
 
+    // When a player's turn runs out. Set when the pick comes on the clock; null for other picks.
+    private Instant deadline;
+
     protected DraftPick() {
     }
 
@@ -51,6 +54,8 @@ public class DraftPick {
         this.madeAt = at;
     }
 
+    public Instant getDeadline() { return deadline; }
+    public void setDeadline(Instant deadline) { this.deadline = deadline; }
     public long getId() { return id; }
     public int getOverall() { return overall; }
     public int getRound() { return round; }

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import useLeague from '../hooks/useLeague.js';
 import { getDraft, pickStock } from '../services/leagueService.js';
+import { formatCountdown } from '../utils/time.js';
 
 const POLL_MS = 4000;
 
@@ -83,6 +84,7 @@ function DraftPage({ token, onUnauthorized }) {
             {summary.status === 'REGISTRATION' && 'The draft has not started. The admin sets the draft day.'}
             {summary.status !== 'REGISTRATION' && !running && summary.status !== 'DRAFTING' && 'Draft complete.'}
           </p>
+          {running && draft?.onTheClockUntil && <Countdown until={draft.onTheClockUntil} onTheClock={draft.onTheClock} />}
         </div>
       </section>
 
@@ -155,6 +157,23 @@ function DraftPage({ token, onUnauthorized }) {
         </div>
       </section>
     </div>
+  );
+}
+
+// Time left on the current pick. When it runs out the league picks for the player automatically.
+function Countdown({ until, onTheClock }) {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const timer = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+  const left = new Date(until).getTime() - now;
+  return (
+    <p className={`countdown ${left <= 10_000 ? 'is-urgent' : ''}`} role="timer" aria-live="off">
+      {left > 0
+        ? `${onTheClock} has ${formatCountdown(left)} to pick.`
+        : `Time is up. A stock is being picked for ${onTheClock}.`}
+    </p>
   );
 }
 

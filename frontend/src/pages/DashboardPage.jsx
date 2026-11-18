@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import useLeague from '../hooks/useLeague.js';
-import { joinLeague } from '../services/leagueService.js';
+import { getLiveBreakdown, joinLeague } from '../services/leagueService.js';
 import { formatPrice } from '../utils/format.js';
 import { fmtPts, statusSentence } from '../utils/points.js';
 
@@ -10,6 +10,26 @@ function DashboardPage({ token, onUnauthorized }) {
   const [teamName, setTeamName] = useState('');
   const [joinError, setJoinError] = useState(null);
   const [isJoining, setIsJoining] = useState(false);
+  const [live, setLive] = useState([]);
+
+  // This month's calls priced against today's closes; refreshed every minute while a month is live.
+  const isLive = summary?.status === 'IN_SEASON' && Boolean(summary?.myTeam);
+  useEffect(() => {
+    if (!isLive) return undefined;
+    let cancelled = false;
+    const load = () =>
+      getLiveBreakdown(token)
+        .then((rows) => {
+          if (!cancelled && Array.isArray(rows)) setLive(rows);
+        })
+        .catch(() => {});
+    load();
+    const timer = setInterval(load, 60_000);
+    return () => {
+      cancelled = true;
+      clearInterval(timer);
+    };
+  }, [isLive, token]);
 
   if (isLoading && !summary) {
     return <p className="loading">Loading your league…</p>;
@@ -80,6 +100,50 @@ function DashboardPage({ token, onUnauthorized }) {
       )}
       {summary.myRequest === 'REJECTED' && (
         <p className="notice notice--error">The admin turned down your request to join this league.</p>
+      )}
+
+      {isLive && live.length > 0 && (
+        <section className="panel">
+          <div className="panel__head">
+            <h2>{summary.monthLabels[summary.currentMonth]}, live</h2>
+            <span className={`stat__value ${live.reduce((s, r) => s + r.points, 0) >= 0 ? 'pos' : 'neg'}`}>
+              {fmtPts(live.reduce((s, r) => s + r.points, 0))} points
+            </span>
+          </div>
+          <div className="table-wrap">
+            <table className="standings">
+              <thead>
+                <tr>
+                  <th>Ticker</th>
+                  <th>Call</th>
+                  <th className="num">Start</th>
+                  <th className="num">Now</th>
+                  <th className="num">Return</th>
+                  <th className="num">Points</th>
+                </tr>
+              </thead>
+              <tbody>
+                {live.map((row) => (
+                  <tr key={row.ticker}>
+                    <td className="mono strong">
+                      {row.ticker}
+                      {row.levered && <span className="badge">2x</span>}
+                    </td>
+                    <td>
+                      <span className={`pill ${row.direction === 'LONG' ? 'pill--long' : 'pill--short'}`}>
+                        {row.direction === 'LONG' ? 'Long' : 'Short'}
+                      </span>
+                    </td>
+                    <td className="num">{formatPrice(row.startPrice) || '—'}</td>
+                    <td className="num">{formatPrice(row.livePrice) || '—'}</td>
+                    <td className="num">{row.livePrice == null ? '—' : `${row.returnPct >= 0 ? '+' : ''}${row.returnPct.toFixed(2)}%`}</td>
+                    <td className={`num ${row.points >= 0 ? 'pos' : 'neg'}`}>{fmtPts(row.points)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
       )}
 
       {summary.myTeam && (

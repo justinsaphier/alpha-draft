@@ -29,12 +29,12 @@ public class AdminLeagueController {
     }
 
     public record AdminView(String name, LeagueStatus status, int leagueSize, Instant draftAt, String firstMonth,
-                            int currentMonth, List<String> monthLabels, List<PlayerRow> pending, List<PlayerRow> accepted,
+                            int pickSeconds, int currentMonth, List<String> monthLabels, List<PlayerRow> pending, List<PlayerRow> accepted,
                             int botCount, List<String> missingPrices, List<SeasonService.PriceRow> prices,
                             List<AuditRow> audit) {
     }
 
-    public record SettingsBody(String name, int leagueSize, Instant draftAt, String firstMonth) {
+    public record SettingsBody(String name, int leagueSize, Instant draftAt, String firstMonth, Integer pickSeconds) {
     }
 
     public record CloseBody(BigDecimal close) {
@@ -70,13 +70,14 @@ public class AdminLeagueController {
         List<AuditRow> audit = league.recentAudit().stream()
                 .map(a -> new AuditRow(a.getAt(), a.getAction(), a.getDetail())).toList();
         return new AdminView(current.getName(), current.getStatus(), current.getLeagueSize(), current.getDraftAt(),
-                current.getFirstMonth(), current.getCurrentMonth(), labels, pending, accepted, bots,
+                current.getFirstMonth(), current.getPickSeconds(), current.getCurrentMonth(), labels, pending, accepted, bots,
                 season.missingPrices(), season.priceTable(), audit);
     }
 
     @PutMapping("/settings")
     public ResponseEntity<Void> settings(@RequestBody SettingsBody body) {
-        league.updateSettings(body.name(), body.leagueSize(), body.draftAt(), body.firstMonth());
+        int seconds = body.pickSeconds() == null ? 90 : body.pickSeconds();
+        league.updateSettings(body.name(), body.leagueSize(), body.draftAt(), body.firstMonth(), seconds);
         return ResponseEntity.noContent().build();
     }
 
