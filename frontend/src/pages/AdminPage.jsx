@@ -9,6 +9,7 @@ import {
   rejectTeam,
   setClosePrice,
   startDraftNow,
+  resetLeague,
   startSeason,
   updateLeagueSettings,
 } from '../services/leagueService.js';
@@ -37,6 +38,7 @@ function AdminPage({ token, onUnauthorized }) {
   const [busy, setBusy] = useState(false);
   const [settings, setSettings] = useState(null);
   const [override, setOverride] = useState({ ticker: '', month: -1, close: '' });
+  const [confirmName, setConfirmName] = useState('');
   const { status: priceStatus, refreshError, startRefresh } = usePrices(token, true, onUnauthorized);
 
   async function load() {
@@ -271,6 +273,35 @@ function AdminPage({ token, onUnauthorized }) {
               {view.prices.length === 0 && <tr><td colSpan={8} className="empty">Stocks appear here once the draft is done.</td></tr>}
             </tbody>
           </table>
+        </div>
+      </section>
+
+      <section className="panel danger" aria-labelledby="delete-title">
+        <h2 id="delete-title">Delete the league</h2>
+        <p className="muted small">
+          This removes every team, draft pick, call, price and log entry for {view.name}. The stock pool stays.
+          A fresh league opens for sign-ups. It cannot be undone.
+        </p>
+        <div className="inline-form">
+          <input
+            aria-label="Type the league name to confirm"
+            placeholder={view.name}
+            value={confirmName}
+            onChange={(e) => setConfirmName(e.target.value)}
+          />
+          <button
+            type="button"
+            className="button button--danger-solid"
+            disabled={busy || confirmName.trim() !== view.name}
+            onClick={() =>
+              act(async () => {
+                await resetLeague(confirmName, token);
+                setConfirmName('');
+              }, 'The league was deleted. A new league is open for sign-ups.')
+            }
+          >
+            Delete league
+          </button>
         </div>
       </section>
 

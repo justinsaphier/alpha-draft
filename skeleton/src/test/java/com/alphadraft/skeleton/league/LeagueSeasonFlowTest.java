@@ -102,9 +102,13 @@ class LeagueSeasonFlowTest {
         List<String> aliceRoster = calls.rosterTickers(alice.getId());
         calls.save(ALICE, 0, allLong(aliceRoster), aliceRoster.get(0));
         calls.submit(ALICE, 0);
-        assertThrows(LeagueException.class, () -> calls.save(ALICE, 0, allLong(aliceRoster), aliceRoster.get(0)));
+        // Calls can still be changed until the month starts.
+        calls.save(ALICE, 0, allLong(aliceRoster), aliceRoster.get(1));
+        calls.save(ALICE, 0, allLong(aliceRoster), aliceRoster.get(0));
 
         season.startSeason();
+        // Once the month starts its calls are locked.
+        assertThrows(LeagueException.class, () -> calls.save(ALICE, 0, allLong(aliceRoster), aliceRoster.get(0)));
         assertEquals(LeagueStatus.IN_SEASON, league.league().getStatus());
         assertEquals(0, league.league().getCurrentMonth());
 

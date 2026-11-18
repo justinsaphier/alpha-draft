@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import useLeague from '../hooks/useLeague.js';
-import { getCalls, saveCalls, submitCalls } from '../services/leagueService.js';
+import { getCalls, saveCalls } from '../services/leagueService.js';
 import { formatPrice } from '../utils/format.js';
 
 // The month whose calls you set now: the first month before the season, otherwise the month after the live one.
@@ -17,12 +17,6 @@ function defaultMonth(summary) {
   }
 }
 
-// "Submitted <timestamp>" reads as "Submitted" in the header; other notes are shown as they are.
-function lockNote(note) {
-  if (!note) return '';
-  return note.startsWith('Submitted') ? '' : ` · ${note}`;
-}
-
 // Long or short on each roster stock, plus one 2x pick. Calls for a month are set during the month
 // before it and lock when it starts; a month you do not submit carries over last month's calls.
 function CallsPage({ token, onUnauthorized }) {
@@ -34,6 +28,7 @@ function CallsPage({ token, onUnauthorized }) {
   const [message, setMessage] = useState(null);
   const [error, setError] = useState(null);
   const [isBusy, setIsBusy] = useState(false);
+  const nextChange = sheet?.label;
 
   useEffect(() => {
     if (summary && month === null) {
@@ -113,13 +108,18 @@ function CallsPage({ token, onUnauthorized }) {
           <h2>{summary.monthLabels[month] ?? ''} calls</h2>
           {sheet && (
             <span className={`pill ${editable ? 'pill--open' : 'pill--locked'}`}>
-              {editable ? 'Open for editing' : sheet.submitted ? `Locked${lockNote(sheet.note)}` : 'Locked'}
+              {editable ? `Open until ${nextChange} starts` : 'Locked'}
             </span>
           )}
         </div>
         {!editable && sheet && (
           <p className="muted">
-            {sheet.submitted ? 'These calls are final.' : 'This month is not open for calls.'}
+            {sheet.locked ? 'This month has started, so these calls are final.' : 'Calls for this month are not open yet.'}
+          </p>
+        )}
+        {editable && (
+          <p className="muted small">
+            Change your calls as often as you like. They lock when {nextChange} starts.
           </p>
         )}
 
@@ -184,21 +184,13 @@ function CallsPage({ token, onUnauthorized }) {
           <div className="actions">
             <button
               type="button"
-              className="button"
-              disabled={isBusy}
-              onClick={() => run(() => saveCalls(month, directions, levered, token), 'Draft saved.')}
-            >
-              Save draft
-            </button>
-            <button
-              type="button"
               className="button button--primary"
               disabled={isBusy || !levered}
-              onClick={() => run(() => saveCalls(month, directions, levered, token).then(() => submitCalls(month, token)), 'Calls submitted and locked in.')}
+              onClick={() => run(() => saveCalls(month, directions, levered, token), `Saved. You can change these until ${nextChange} starts.`)}
             >
-              Submit calls
+              Save calls
             </button>
-            {!levered && <span className="muted small">Pick one 2x call to submit.</span>}
+            {!levered && <span className="muted small">Pick one 2x call to save.</span>}
           </div>
         )}
         {message && <p className="notice" role="status">{message}</p>}

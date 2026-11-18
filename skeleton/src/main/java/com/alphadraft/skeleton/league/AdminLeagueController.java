@@ -40,14 +40,19 @@ public class AdminLeagueController {
     public record CloseBody(BigDecimal close) {
     }
 
+    public record ResetBody(String confirmName) {
+    }
+
     private final LeagueService league;
     private final DraftService draft;
     private final SeasonService season;
     private final CallService calls;
     private final StockRepository stocks;
+    private final LeagueResetService reset;
 
     public AdminLeagueController(LeagueService league, DraftService draft, SeasonService season,
-                                 CallService calls, StockRepository stocks) {
+                                 CallService calls, StockRepository stocks, LeagueResetService reset) {
+        this.reset = reset;
         this.league = league;
         this.draft = draft;
         this.season = season;
@@ -114,6 +119,13 @@ public class AdminLeagueController {
     @PutMapping("/snapshots/{ticker}/{month}")
     public ResponseEntity<Void> setPrice(@PathVariable String ticker, @PathVariable int month, @RequestBody CloseBody body) {
         season.overridePrice(ticker, month, body == null ? null : body.close());
+        return ResponseEntity.noContent().build();
+    }
+
+    // Deletes the whole league: teams, draft, calls, prices and history. Needs the league's exact name.
+    @PostMapping("/reset")
+    public ResponseEntity<Void> resetLeague(@RequestBody ResetBody body) {
+        reset.reset(body == null ? null : body.confirmName());
         return ResponseEntity.noContent().build();
     }
 

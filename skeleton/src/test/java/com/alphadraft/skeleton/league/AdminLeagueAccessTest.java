@@ -48,6 +48,9 @@ class AdminLeagueAccessTest {
     @MockitoBean
     private StockRepository stocks;
 
+    @MockitoBean
+    private LeagueResetService reset;
+
     private String bearer(Role role) {
         return "Bearer " + tokenService.issue(new User(role.name().toLowerCase() + "@example.com", "hash", role));
     }

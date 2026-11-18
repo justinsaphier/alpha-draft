@@ -72,10 +72,12 @@ public class CallService {
             if (team.isBot()) {
                 String levered = tickers.isEmpty() ? null : tickers.get(random.nextInt(tickers.size()));
                 applyPicks(team.getId(), month, randomCalls(tickers), levered);
-                sheet.lock("Bot calls");
+                sheet.lockForMonth("Bot calls");
             } else if (!sheet.isSubmitted()) {
                 ensureLevered(team.getId(), month, tickers);
-                sheet.lock("Locked automatically (calls carried over)");
+                sheet.lockForMonth("Locked automatically (calls carried over)");
+            } else {
+                sheet.lockForMonth(sheet.getNote());
             }
         }
         league.log("LOCK", label(month) + " calls are locked");
@@ -89,8 +91,8 @@ public class CallService {
         }
         List<String> tickers = rosterTickers(team.getId());
         CallSheet sheet = ensureSheet(team.getId(), month, tickers);
-        if (sheet.isSubmitted()) {
-            throw new LeagueException(HttpStatus.CONFLICT, "Your calls for this month are locked.");
+        if (sheet.isLocked()) {
+            throw new LeagueException(HttpStatus.CONFLICT, "This month has started, so its calls are locked.");
         }
         Map<String, String> dirs = new HashMap<>();
         for (String ticker : tickers) {
@@ -103,10 +105,16 @@ public class CallService {
         if (levered != null && !tickers.contains(levered)) {
             throw new LeagueException(HttpStatus.BAD_REQUEST, levered + " is not on your roster.");
         }
+        if (levered == null) {
+            throw new LeagueException(HttpStatus.BAD_REQUEST, "Pick exactly one stock for the 2x call.");
+        }
         applyPicks(team.getId(), month, dirs, levered);
+        sheet.confirm("Saved " + clock.instant());
+        league.log("CALLS", team.getName() + " saved " + label(month) + " calls");
         return view(team, month, true);
     }
 
+    // Confirms the calls as they stand. Saving already confirms them, so this only checks they are complete.
     @Transactional
     public CallSheetView submit(String email, int month) {
         Team team = memberOrThrow(email);
@@ -114,15 +122,15 @@ public class CallService {
             throw new LeagueException(HttpStatus.CONFLICT, "Calls for this month are not open.");
         }
         CallSheet sheet = ensureSheet(team.getId(), month, rosterTickers(team.getId()));
-        if (sheet.isSubmitted()) {
-            throw new LeagueException(HttpStatus.CONFLICT, "Your calls for this month are already locked.");
+        if (sheet.isLocked()) {
+            throw new LeagueException(HttpStatus.CONFLICT, "This month has started, so its calls are locked.");
         }
         long levered = calls.findByTeamIdAndMonthIndex(team.getId(), month).stream().filter(CallPick::isLevered).count();
         if (levered != 1) {
             throw new LeagueException(HttpStatus.BAD_REQUEST, "Pick exactly one stock for the 2x call.");
         }
-        sheet.lock("Submitted " + clock.instant());
-        league.log("CALLS", team.getName() + " submitted " + label(month) + " calls");
+        sheet.confirm("Submitted " + clock.instant());
+        league.log("CALLS", team.getName() + " confirmed " + label(month) + " calls");
         return view(team, month, true);
     }
 
@@ -278,8 +286,9 @@ public class CallService {
         }
         rows.sort(Comparator.comparing(CallRow::ticker));
         boolean submitted = sheet.map(CallSheet::isSubmitted).orElse(false);
-        return new CallSheetView(month, label(month), own && isOpen(current, month) && !submitted,
-                submitted, sheet.map(CallSheet::getNote).orElse(null), leveredTicker, rows);
+        boolean locked = sheet.map(CallSheet::isLocked).orElse(false);
+        return new CallSheetView(month, label(month), own && isOpen(current, month) && !locked,
+                submitted, sheet.map(CallSheet::getNote).orElse(null), leveredTicker, rows, locked);
     }
 
     private Map<String, DailyPrice> latestPrices() {
@@ -301,6 +310,6 @@ public class CallService {
     }
 
     public record CallSheetView(int month, String label, boolean editable, boolean submitted, String note,
-                                String levered, List<CallRow> picks) {
+                                String levered, List<CallRow> picks, boolean locked) {
     }
 }

@@ -50,5 +50,7 @@ export const startSeason = (token) => call('/admin/league/season/start', { metho
 export const finalizeMonth = (token) => call('/admin/league/months/finalize', { method: 'POST', token });
 export const setClosePrice = (ticker, month, close, token) =>
   call(`/admin/league/snapshots/${ticker}/${month}`, { method: 'PUT', token, body: { close } });
+export const resetLeague = (confirmName, token) =>
+  call('/admin/league/reset', { method: 'POST', token, body: { confirmName } });
 export const clearClosePrice = (ticker, month, token) =>
   call(`/admin/league/snapshots/${ticker}/${month}`, { method: 'DELETE', token });

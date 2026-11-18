@@ -58,6 +58,20 @@ public class League {
     public void setDraftAt(Instant draftAt) { this.draftAt = draftAt; }
     public String getFirstMonth() { return firstMonth; }
     public void setFirstMonth(String firstMonth) { this.firstMonth = firstMonth; }
+    // Back to a fresh league: the default name and size, open for sign-ups, no draft, no season.
+    public void resetToDefaults() {
+        this.name = DEFAULT_NAME;
+        this.leagueSize = DEFAULT_SIZE;
+        this.status = LeagueStatus.REGISTRATION;
+        this.draftAt = null;
+        this.firstMonth = null;
+        this.currentMonth = -1;
+        this.pickSeconds = null;
+    }
+
+    public static final String DEFAULT_NAME = "Alpha Draft League";
+    public static final int DEFAULT_SIZE = 8;
+
     public int getPickSeconds() { return pickSeconds == null ? 90 : pickSeconds; }
     public void setPickSeconds(int pickSeconds) { this.pickSeconds = pickSeconds; }
     public int getCurrentMonth() { return currentMonth; }
